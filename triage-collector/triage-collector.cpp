@@ -59,6 +59,7 @@ param_logfiledump = true,
 param_securedump = true,
 param_usndump = true,
 param_evtxdump = true,
+param_wevtutil = true,
 param_prefdump = true,
 param_regdump = true,
 param_webdump = true,
@@ -605,7 +606,7 @@ int get_analysisdata_evtx(char *sysdir, char *dstdir, ostringstream *osslog = NU
 	for (auto file : files) {
 		sprintf(srcpath, "%s\\winevt\\Logs\\%s", sysdir, file.first.c_str());
 		sprintf(dstpath, "%s\\%s", dstdir, file.first.c_str());
-		if (StealthGetFile(srcpath, dstpath, osslog, false))
+		if ((param_wevtutil && WriteWrapper::isLocal()) || StealthGetFile(srcpath, dstpath, osslog, false))
 		{
 			if (!WriteWrapper::isLocal())
 				continue;
@@ -1396,6 +1397,7 @@ int main(int argc, char **argv)
 			{{"Secure", "Secure", "Secure" }, &param_securedump},
 			{{"UsnJrnl", "ジャーナル", "UsnJrnl"}, &param_usndump},
 			{{"EventLog", "イベントログ", "Event log"}, &param_evtxdump},
+			{{"wevtutil", "wevtutil", "wevtutil"}, &param_wevtutil},
 			{{"Prefetch", "プリフェッチ", "Prefetch"}, &param_prefdump},
 			{{"Registry", "レジストリ", "Registry"}, &param_regdump},
 			{{"WMI", "WMI", "WMI"}, &param_wmidump},

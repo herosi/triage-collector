@@ -46,6 +46,7 @@ static map<string, TYPE_ID, c_ignorecase> CONFIGLIST = {
 	{"host", TYPE_STRING},
 	{"port", TYPE_INT},
 	{"path", TYPE_STRING},
+	{"wevtutil", TYPE_BOOL},
 	{"Enter", TYPE_BOOL }
 };
 
