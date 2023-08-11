@@ -1491,12 +1491,14 @@ int main(int argc, char **argv)
 		strncpy(osvolume, (CASTVAL(string, config->getValue("Target"))).c_str(), 2);
 		strncpy(usrvolume, (CASTVAL(string, config->getValue("Target"))).c_str(), 2);
 		strncpy(sysdir, (CASTVAL(string, config->getValue("Target"))).c_str(), 2);
+		strncpy(usrdir, (CASTVAL(string, config->getValue("Target"))+"\\Users").c_str(), 2);
 		strncpy(windir, (CASTVAL(string, config->getValue("Target"))).c_str(), 2);
 		strncpy(backupdir, (CASTVAL(string, config->getValue("Target"))).c_str(), 2);
 		cerr << "Target: " << osvolume << endl;
 	}
 
 	osvolume[sizeof(osvolume) - 1] = '\0'; // null terminate
+	usrvolume[sizeof(usrvolume) - 1] = '\0'; // null terminate
 
 	GetNativeSystemInfo(&sysinfo);
 	if ((sysinfo.wProcessorArchitecture & PROCESSOR_ARCHITECTURE_AMD64) || (sysinfo.wProcessorArchitecture & PROCESSOR_ARCHITECTURE_IA64) == 64) {
