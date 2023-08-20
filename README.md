@@ -39,6 +39,7 @@ without compilation as well as pre-defined artifacts.
     * Windows Timeline
     * ntds.dit
     * sysvol
+    * RDP cache
     * Thunderbird (needed to uncomment the line)
     * Outlook (needed to uncomment the line)
 
