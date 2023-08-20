@@ -40,6 +40,7 @@ without compilation as well as pre-defined artifacts.
     * ntds.dit
     * sysvol
     * RDP cache
+    * PowerShell Console History
     * Thunderbird (needed to uncomment the line)
     * Outlook (needed to uncomment the line)
 
