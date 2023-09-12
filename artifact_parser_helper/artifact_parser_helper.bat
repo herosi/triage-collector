@@ -7,11 +7,14 @@ set codepage=%~4
 set driveletter=%~5
 
 set regindir=%indir%\Registry
+rem set rlaoutdir=%outdir%\Registry_fixed
 set regoutdir=%outdir%\Registry
 set recmdoutdir=%regoutdir%\EZTools
 set rroutdir=%regoutdir%\RegRipper
+set yarpoutdir=%regoutdir%\yarp
 
 setlocal enabledelayedexpansion
+set PYTHONIOENCODING=UTF-8
 
 mkdir "%outdir%" 2> nul
 
@@ -48,6 +51,12 @@ call :GET_INI_VALUE "!inifile!" Parser THUMBCACHE
 call :GET_INI_VALUE "!inifile!" Parser TASKS
 call :GET_INI_VALUE "!inifile!" Parser BmcTools
 call :GET_INI_VALUE "!inifile!" Parser Rdpieces
+call :GET_INI_VALUE "!inifile!" Parser YarpTimeline
+call :GET_INI_VALUE "!inifile!" Parser YarpPrint
+call :GET_INI_VALUE "!inifile!" Parser evtxexport_txt
+call :GET_INI_VALUE "!inifile!" Parser evtxexport_xml
+call :GET_INI_VALUE "!inifile!" Parser evtx_dump
+call :GET_INI_VALUE "!inifile!" Parser SIDR
 
 echo [*] Parser settings
 echo                                     MFT with MFTECmd: %MFTECmd_MFT%
@@ -59,8 +68,13 @@ echo                       $Logfile with NTFS Log Tracker: %NLT_Log%
 echo                     UnsJrnl:$J with NTFS Log Tracker: %NLT_J%
 echo                              Event log with EvtxECmd: %EvtxECmd%
 echo                              Event log with hayabusa: %HAYABUSA%
+echo             Event log with evtx_dump by omerbenamram: %evtx_dump%
+echo                    Event log with evtxexport as text: %evtxexport_txt%
+echo                     Event log with evtxexport as XML: %evtxexport_xml%
 echo                                  Registry with RECmd: %RECmd%
 echo                             Registry with RegRipper3: %RegRipper%
+echo                          Registry with yarp-timeline: %YarpTimeline%
+echo                             Registry with yarp-print: %YarpPrint%
 echo                           AmCache with AmcacheParser: %AmcacheParser%
 echo Shimcache (AppCompatCache) with AppCompatCacheParser: %AppCompatCacheParser%
 echo                                 Shellbag with SBECmd: %SBECmd%
@@ -78,6 +92,7 @@ echo     Thumbcache and Icon cache with Thumbcache viewer: %THUMBCACHE%
 echo                    Tasks folders with task_parser.py: %TASKS%
 echo                          RDP cache with bmc-tools.py: %BmcTools%
 echo                bmc-tools.py results with rdpieces.pl: %Rdpieces%
+echo                             Search Indexor with sidr: %SIDR%
 echo.
 
 echo [*] RECmd settings
@@ -85,6 +100,11 @@ call :GET_INI_VALUE "!inifile!" RECmd REBatchFolder
 call :GET_INI_VALUE "!inifile!" RECmd REBatches
 echo RECmd's batch folder: %REBatchFolder%
 echo RECmd's batch files: %REBatches%
+echo.
+
+echo [*] yarp settings
+call :GET_INI_VALUE "!inifile!" yarp YARPPath
+echo YARP folder: %YARPPath%
 echo.
 
 call :GET_INI_VALUE "!inifile!" Common codepage
@@ -111,6 +131,15 @@ if x"%driveletter%" == x"" (
     set driveletter=C
 )
 
+
+set HRC_OPT=
+for /F "tokens=* USEBACKQ" %%l in (`hayabusa csv-timeline`) do (
+    echo "%%l"|findstr /i /C:"-x, --recover-records">nul
+    if !errorlevel! equ 0 (
+        set HRC_OPT=-x -X
+    )
+)
+
 set CP_OPT=
 for /F "tokens=* USEBACKQ" %%l in (`lecmd`) do (
     echo "%%l"|findstr /i /C:"--cp <cp>">nul
@@ -127,6 +156,10 @@ for /F "tokens=* USEBACKQ" %%l in (`jlecmd`) do (
     )
 )
 
+set CP_OPT_EE=
+if %codepage% neq 65001 (
+    set CP_OPT_EE=-c windows-%codepage%
+)
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Parsing Artifacts with Analysis Tools
@@ -145,17 +178,96 @@ if exist "%indir%\Evtx" (
         echo.
     )
 
-    echo [+] Parse event logs with hayabusa
     if /I x"%HAYABUSA%" == x"true" (
+        echo [+] Parse event logs with hayabusa
         if not exist "%outdir%\Evtx\hayabusa_default.csv" (
-            echo hayabusa.exe csv-timeline -d "%indir%\Evtx" -o "%outdir%\Evtx\hayabusa_default.csv"
-            hayabusa.exe csv-timeline -d "%indir%\Evtx" -o "%outdir%\Evtx\hayabusa_default.csv"
+            echo hayabusa.exe csv-timeline -d %HRC_OPT% "%indir%\Evtx" -o "%outdir%\Evtx\hayabusa_default.csv"
+            hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -o "%outdir%\Evtx\hayabusa_default.csv"
         ) else (
             echo [-] Skipped parsing event logs with hayabusa
         )
         if not exist "%outdir%\Evtx\hayabusa_IIJ.csv" (
-            echo hayabusa.exe csv-timeline -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
-            hayabusa.exe csv-timeline -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
+            echo hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
+            hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
+        )
+        echo.
+    )
+
+    :: evtxexport
+    set eeoutdir=%outdir%\Evtx\evtxexport
+    set SOFT_HIVE_OPT=
+    if exist "%regindir%\SOFTWARE" (
+        set SOFT_HIVE_OPT=-s "%regindir%\SOFTWARE"
+    )
+    set SYS_HIVE_OPT=
+    if exist "%regindir%\SYSTEM" (
+        set SYS_HIVE_OPT=-S "%regindir%\SYSTEM"
+    )
+    if /I x"%evtxexport_txt%" == x"true" (
+        mkdir "!eeoutdir!" 2> nul
+        echo [+] Parse event logs with evtxexport as text
+        for /R "%indir%\Evtx" %%f in (*) do (
+            set LOGTYPE=
+            if /I x"%%~nxf" == x"Security.evtx" (
+                set LOGTYPE=-t security
+            )
+            if /I x"%%~nxf" == x"Application.evtx" (
+                set LOGTYPE=-t application
+            )
+            if /I x"%%~nxf" == x"System.evtx" (
+                set LOGTYPE=-t system
+            )
+            if not exist "!eeoutdir!\%%~nxf.txt" (
+                  echo evtxexport -m all %CP_OPT_EE% !LOGTYPE! !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" ^> "!eeoutdir!\%%~nxf.txt"
+                  evtxexport -m all %CP_OPT_EE% !LOGTYPE! !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" > "!eeoutdir!\%%~nxf.txt"
+            )
+        )
+        echo.
+    )
+    if /I x"%evtxexport_xml%" == x"true" (
+        mkdir "!eeoutdir!" 2> nul
+        echo [+] Parse event logs with evtxexport as xml
+        for /R "%indir%\Evtx" %%f in (*) do (
+            set LOGTYPE=
+            if /I x"%%~nxf" == x"Security.evtx" (
+                set LOGTYPE=-t security
+            )
+            if /I x"%%~nxf" == x"Application.evtx" (
+                set LOGTYPE=-t application
+            )
+            if /I x"%%~nxf" == x"System.evtx" (
+                set LOGTYPE=-t system
+            )
+            if not exist "!eeoutdir!\%%~nxf.xml" (
+                  echo evtxexport -f xml -T -m all !LOGTYPE! %CP_OPT_EE% !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" ^> "!eeoutdir!\%%~nxf.xml"
+                  evtxexport -f xml -T -m all !LOGTYPE! %CP_OPT_EE% !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" > "!eeoutdir!\%%~nxf.xml"
+            )
+        )
+        echo.
+    )
+
+    :: evtx_dump.exe
+    set edoutdir=%outdir%\Evtx\evtx_dump
+    if /I x"%evtx_dump%" == x"true" (
+        mkdir "!edoutdir!\im_out" 2> nul
+        echo [+] Parse event logs with evtx_dump
+        for /R "%indir%\Evtx" %%f in (*) do (
+            if not exist "!edoutdir!\im_out\%%~nxf.xml" (
+                echo ^<?xml version="1.0" encoding="utf-8"?^>  > "!edoutdir!\im_out\%%~nxf.xml"
+                echo ^<evtx_dump^> >> "!edoutdir!\im_out\%%~nxf.xml"
+                evtx_dump.exe --dont-show-record-number -o xml "%%f" | findstr /I /V "<?xml version=\"1.0\" encoding=\"utf-8\"?>" >> "!edoutdir!\im_out\%%~nxf.xml"
+                echo ^</evtx_dump^>  >> "!edoutdir!\im_out\%%~nxf.xml"
+            )
+            if not exist "!edoutdir!\%%~nxf.xml.csv" (
+                rem mkdir "!edoutdir!\im_out\%%~nxf" 2> nul
+                rem xml_evtx_parse.py -a -o "!edoutdir!\im_out\%%~nxf" "!edoutdir!\im_out\%%~nxf.xml" > "!edoutdir!\%%~nxf.xml.csv"
+                xml_evtx_parse.py -a -o "!edoutdir!\im_out" "!edoutdir!\im_out\%%~nxf.xml" > "!edoutdir!\%%~nxf.xml.csv"
+            )
+            if not exist "!edoutdir!\%%~nxf.xml_wattr.csv" (
+                rem mkdir "!edoutdir!\im_out\%%~nxf" 2> nul
+                rem xml_evtx_parse.py -a -o "!edoutdir!\im_out\%%~nxf" "!edoutdir!\im_out\%%~nxf.xml" > "!edoutdir!\%%~nxf.xml.csv"
+                xml_evtx_parse.py -a -r -o "!edoutdir!\im_out" "!edoutdir!\im_out\%%~nxf.xml" > "!edoutdir!\%%~nxf.xml_wattr.csv"
+            )
         )
         echo.
     )
@@ -241,6 +353,35 @@ if exist "%indir%\sum" (
         echo.
     )
 )
+
+if exist "%indir%\SearchIndex" (
+    if /I x"%SIDR%" == x"true" (
+        echo [+] Parse Search Indexor with sidr
+        if not exist "%outdir%\SearchIndex" (
+            if exist "%indir%\SearchIndex\Windows.edb" (
+                echo [+] Backup Search Indexor related files first to fix the database up
+                mkdir "%outdir%\SearchIndex\fixed" 2> nul
+                ROBOCOPY "%indir%\SearchIndex" "%outdir%\SearchIndex\fixed" /E /COPY:DT /DCOPY:T > nul
+                attrib -r "%outdir%\SearchIndex\fixed\*.*" /s
+                pushd "%outdir%\SearchIndex\fixed"
+                esentutl.exe /r edb /i > nul
+                esentutl.exe /p "Windows.edb" /o > nul
+                popd
+                echo sidr -f csv "%outdir%\SearchIndex\fixed" -o "%outdir%\SearchIndex"
+                sidr -f csv "%outdir%\SearchIndex\fixed" -o "%outdir%\SearchIndex"
+            ) else if exist "%indir%\SearchIndex\Windows.db" (
+                echo sidr -f csv "%indir%\SearchIndex" -o "%outdir%\SearchIndex"
+                sidr -f csv "%indir%\SearchIndex" -o "%outdir%\SearchIndex"
+            ) else (
+                echo [-] Skipped parsing Search Indexor with sidr
+            )
+        ) else (
+            echo [-] Skipped parsing Search Indexor with sidr
+        )
+        echo.
+    )
+)
+
 
 if exist "%indir%\tasks" (
     if /I x"%TASKS%" == x"true" (
@@ -374,8 +515,14 @@ if exist "%indir%\Registry" (
     echo [*] Processing registry hives
 
     mkdir "%regoutdir%" 2> nul
+    rem mkdir "%rlaoutdir%" 2> nul
     mkdir "%rroutdir%" 2> nul
     mkdir "%recmdoutdir%" 2> nul
+    mkdir "%yarpoutdir%" 2> nul
+
+    echo [+] Process all registry hives with RECmd
+    rem rla -d "%regindir%" --out "%rlaoutdir%" --ca true --cn false
+    rem set regindir=%rlaoutdir%
 
     if /I x"%RECmd%" == x"true" (
         echo [+] Process all registry hives with RECmd
@@ -412,13 +559,49 @@ if exist "%indir%\Registry" (
             if /I x"%RegRipper%" == x"true" (
                 :: execute regripper
                 if not exist "%rroutdir%\%%~nxf_rip.txt" (
+                    echo [+] Check if %%~nxf is dirty or not
+                    dir /b "%rroutdir%" | findstr /I /R "%%~nxf_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]@[0-9][0-9][0-9]"
+                    if !errorlevel! neq 0 (
+                        python registryFlush.py -f "%%f" -o "%rroutdir%"
+                    )
+                    set rrinfile=%%f
+                    dir /b "%rroutdir%" | findstr /I /R "%%~nxf_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]@[0-9][0-9][0-9]">nul
+                    if !errorlevel! equ 0 (
+                        for /f "delims=" %%a in ('dir /b "%rroutdir%" ^| findstr /I /R "%%~nxf_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]@[0-9][0-9][0-9]" ') do (
+                            set rrinfile=%rroutdir%\%%a
+                        )
+                    )
                     echo [+] Parse %%~nxf with RegRipper
-                    echo rip -r "%%f" -a ^> "%rroutdir%\%%~nxf_rip.txt"
-                    rip -r "%%f" -a > "%rroutdir%\%%~nxf_rip.txt" 2>nul
-                    echo rip -r "%%f" -aT ^> "%rroutdir%\%%~nxf_rip_tn.csv"
-                    rip -r "%%f" -aT > "%rroutdir%\%%~nxf_rip_tn.csv" 2>nul
+                    echo rip -r "!rrinfile!" -a ^> "%rroutdir%\%%~nxf_rip.txt"
+                    rip -r "!rrinfile!" -a > "%rroutdir%\%%~nxf_rip.txt" 2>nul
+                    echo rip -r "!rrinfile!" -aT ^> "%rroutdir%\%%~nxf_rip_tn.csv"
+                    rip -r "!rrinfile!" -aT > "%rroutdir%\%%~nxf_rip_tn.csv" 2>nul
                 ) else (
                     echo [-] Skipped parsing %%~nxf with RegRipper
+                )
+                echo.
+            )
+
+            if /I x"%YarpTimeline%" == x"true" (
+                :: execute yarp-timeline
+                if not exist "%yarpoutdir%\%%~nxf_yt.txt" (
+                    echo [+] Parse %%~nxf with yarp-timeline
+                    echo python %YARPPath%\yarp-timeline "%%f" ^> "%yarpoutdir%\%%~nxf_yt.txt"
+                    python %YARPPath%\yarp-timeline "%%f" > "%yarpoutdir%\%%~nxf_yt.txt"
+                ) else (
+                    echo [-] Skipped parsing %%~nxf with yarp-timeline
+                )
+                echo.
+            )
+
+            if /I x"%YarpPrint%" == x"true" (
+                :: execute yarp-print
+                if not exist "%yarpoutdir%\%%~nxf_yp.txt" (
+                    echo [+] Parse %%~nxf with yarp-print
+                    echo python %YARPPath%\yarp-print "%%f" --deleted ^> "%yarpoutdir%\%%~nxf_yp.txt"
+                    python %YARPPath%\yarp-print --deleted "%%f" > "%yarpoutdir%\%%~nxf_yp.txt"
+                ) else (
+                    echo [-] Skipped parsing %%~nxf with yarp-print
                 )
                 echo.
             )
@@ -437,8 +620,6 @@ if exist "%indir%\Registry" (
                         mkdir "!useroutdir!" 2> nul
                     )
                     for %%b in (%REBatches%) do (
-                        dir /b "!useroutdir!" | findstr /i /l "%%~nxf_%%b.finished"
-                        echo dir /b "!useroutdir!" | findstr /i /l "%%~nxf_%%b.finished"
                         dir /b "!useroutdir!" | findstr /i /l "%%~nxf_%%b.finished">nul
                         if !errorlevel! neq 0 (
                             echo [+] Parse %%~nxf with %%b.reb with RECmd
@@ -535,8 +716,8 @@ if exist "%indir%\srum" (
                 echo [+] Parse SRUM with srum-dump2
 
                 set SOFT_HIVE=
-                if exist "%indir%\Registry\SOFTWARE" (
-                    set SOFT_HIVE=-r "%indir%\Registry\SOFTWARE"
+                if exist "%regindir%\SOFTWARE" (
+                    set SOFT_HIVE=-r "%regindir%\SOFTWARE"
                 )
                 echo srum_dump2 -i "%outdir%\srum\SRUDB.dat" -o "%outdir%\srum.xlsx" -t "SRUM_TEMPLATE3.xlsx" !SOFT_HIVE!
                 srum_dump2 -i "%outdir%\srum\SRUDB.dat" -o "%outdir%\srum.xlsx" -t "SRUM_TEMPLATE3.xlsx" !SOFT_HIVE! > nul
@@ -707,6 +888,17 @@ if exist "%indir%\rdpcache" (
             )
         )
     )
+)
+
+:: Clean up
+echo [+] Delete empty folders
+rem for "%outdir%" %%f in (*) do (
+for /R "%outdir%" %%f in (.) do (
+        dir /b /a "%%f" | findstr /R ".*" > nul
+        if !errorlevel! neq 0 (
+            echo [+] Delete "%%f" folder because this is empty
+            rmdir /s /q "%%f"
+        )
 )
 
 endlocal

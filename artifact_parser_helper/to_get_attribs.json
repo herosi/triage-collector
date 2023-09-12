@@ -1,0 +1,168 @@
+{
+    "4624,Security": {
+        "attrib_names" : [
+            "TargetUserSid", "TargetUserName", "TargetDomainName",
+            "LogonGuid", "IpAddress", "IpPort", 
+            "WorkstationName", "TargetLogonId", "LogonType",
+            "ProcessId", "ProcessName", 
+            "LogonProcessName", "AuthenticationPackageName",
+            "RestrictedAdminMode", "TargetLinkedLogonId", "ImpersonationLevel",
+            "ElevatedToken"
+        ],
+        "attrib_name": "Name"
+    },
+    "4648,Security": {
+        "attrib_names" : [
+            "TargetUserSid", "TargetUserName", "TargetDomainName",
+            "TargetLogonGuid", "IpAddress", "IpPort", 
+            "TargetServerName",
+            "TargetLogonId", "LogonType", 
+            "ProcessId", "ProcessName", 
+            "TargetInfo"
+        ],
+        "attrib_name": "Name"
+    },
+    "4672,Security": {
+        "attrib_names" : [
+            "SubjectUserSid", "SubjectUserName", "SubjectDomainName",
+            "SubjectLogonGuid", "PrivilegeList"
+        ],
+        "attrib_name": "Name"
+    },
+    "4768,Security": {
+        "attrib_names": [
+            "TargetSid", "TargetUserName", "TargetDomainName",
+            "LogonGuid", "IpAddress", "IpPort", 
+            "TicketEncryptionType", "TicketOptions", 
+            "ServiceName", "ServiceSid"
+        ],
+        "attrib_name": "Name"
+    },
+    "4742,Security": {},
+    "4769,Security": {
+        "attrib_names": [
+            "TargetSidDummy", "TargetUserName", "TargetDomainName",
+            "LogonGuid", "IpAddress", "IpPort", 
+            "TicketEncryptionType", "TicketOptions", 
+            "ServiceName", "ServiceSid"
+        ],
+        "attrib_name": "Name"
+    },
+    "4728,Security": {
+    },
+    "4770,Security": {
+        "attrib_names": [
+            "TargetSidDummy", "TargetUserName", "TargetDomainName",
+            "LogonGuid", "IpAddress", "IpPort", 
+            "TicketEncryptionType", "TicketOptions", 
+            "ServiceName", "ServiceSid"
+        ],
+        "attrib_name": "Name"
+    },
+    "4776,Security": {
+        "attrib_names": [
+            "TargetSid_Dummy", "TargetUserName", "TargetDomainName_Dummy",
+            "LogonGuid_Dummy", "Workstation", "Status",
+            "PackageName"
+        ],
+        "attrib_name": "Name"
+    },
+    "4662,Security": {
+    },
+    "106,Microsoft-Windows-TaskScheduler/Operational": {
+        "attrib_names": [
+            "TaskName", "UserContext"
+        ],
+        "attrib_name": "Name"
+    },
+    "110,Microsoft-Windows-TaskScheduler/Operational": {
+        "attrib_names": [
+            "TaskName", "UserContext", "InstanceId"
+        ],
+        "attrib_name": "Name"
+    },
+    "140,Microsoft-Windows-TaskScheduler/Operational": {
+        "attrib_names": [
+            "TaskName", "UserName"
+        ],
+        "attrib_name": "Name"
+    },
+    "141,Microsoft-Windows-TaskScheduler/Operational": {
+        "attrib_names": [
+            "TaskName", "UserName"
+        ],
+        "attrib_name": "Name"
+    },
+    "21,Microsoft-Windows-TerminalServices-LocalSessionManager/Operational": {},
+    "22,Microsoft-Windows-TerminalServices-LocalSessionManager/Operational": {},
+    "24,Microsoft-Windows-TerminalServices-LocalSessionManager/Operational": {},
+    "25,Microsoft-Windows-TerminalServices-LocalSessionManager/Operational": {},
+    "1149,Microsoft-Windows-TerminalServices-RemoteConnectionManager/Operational": {
+        "tag_names": [
+            "Dummy1", "Param1", "Param2",
+            "Dummy4", "Param3"
+		],
+		"ns": "Event_NS"
+	},
+    "1102,Microsoft-Windows-TerminalServices-RDPClient/Operational": {
+        "attrib_names": [
+            "Dummy1", "Dummy2", "Dummy3", "Dummy4", "Dummy5", "Dummy6", "Value"
+        ],
+        "attrib_name": "Name"
+    },
+    "1024,Microsoft-Windows-TerminalServices-RDPClient/Operational": {},
+    "1029,Microsoft-Windows-TerminalServices-RDPClient/Operational": {},
+    "5860,Microsoft-Windows-WMI-Activity/Operational": {},
+    "5861,Microsoft-Windows-WMI-Activity/Operational": {},
+    "5857,Microsoft-Windows-WMI-Activity/Operational": {},
+    "5858,Microsoft-Windows-WMI-Activity/Operational": {},
+    "91,Microsoft-Windows-WinRM/Operational":{},
+    "6,Microsoft-Windows-WinRM/Operational":{
+        "attrib_names": [
+            "connection"
+        ],
+        "attrib_name": "Name"
+    },
+    "4103,Microsoft-Windows-PowerShell/Operational": {
+        "attrib_names": [
+            "ContextInfo", "Payload", "UserData"
+        ],
+        "attrib_name": "Name"
+    },
+    "4104,Microsoft-Windows-PowerShell/Operational": {
+        "attrib_names": [
+            "Path", "MessageNumber", "MessageTotal"
+        ],
+        "attrib_name": "Name"
+    },
+    "53504,Microsoft-Windows-PowerShell/Operational": {
+        "attrib_names": [
+            "param1", "param2"
+        ],
+        "attrib_name": "Name"
+    },
+    "400,Windows PowerShell": {
+    },
+    "403,Windows PowerShell": {
+    },
+    "800,Windows PowerShell": {},
+    "7045,System": {
+        "attrib_names": [
+            "AccountName", "ImagePath", "ServiceName", "ServiceType", "StartType"
+        ],
+        "attrib_name": "Name"
+    },
+    "1014,System": {
+        "attrib_names": [
+            "QueryName", "Address", "AddressLength"
+        ],
+        "attrib_name": "Name"
+    },
+    "5145,Security": {},
+    "4656,Security": {},
+    "1102,Security": {},
+    "104,System": {},
+	"9707,Microsoft-Windows-Shell-Core/Operational": {},
+	"9708,Microsoft-Windows-Shell-Core/Operational": {},
+    "10,Microsoft-Windows-Sysmon/Operational": {}
+}
