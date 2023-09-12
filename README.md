@@ -41,6 +41,9 @@ without compilation as well as pre-defined artifacts.
     * sysvol
     * RDP cache
     * PowerShell Console History
+    * $Recycle.bin
+    * Thumb cache and Icon cache
+    * Search Indexor
     * Thunderbird (needed to uncomment the line)
     * Outlook (needed to uncomment the line)
 
