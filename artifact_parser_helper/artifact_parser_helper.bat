@@ -119,14 +119,6 @@ if x"%codepage%" == x"" (
 echo [*] codepage = %codepage%
 echo.
 
-if x"%codepage%" == x"" (
-    call :CMDRESULT "chcp" chcpresult
-    :: get the last integer
-    for %%c in (!chcpresult!) do (
-        set codepage=%%c
-    )
-)
-
 if x"%driveletter%" == x"" (
     set driveletter=C
 )
@@ -332,21 +324,24 @@ if exist "%indir%\sum" (
         echo [+] Parse SUM with SumECmd
         if not exist "%outdir%\sum" (
             echo [+] Backup SUM related files first to fix the database up
-            ROBOCOPY "%indir%\sum" "%outdir%\sum" /E /COPY:DT /DCOPY:T > nul
-            attrib -r "%outdir%\sum\*.*" /s
-            pushd "%outdir%\sum"
-            esentutl.exe /r svc /i > nul
-            for /R "%outdir%\sum" %%f in (*) do (
-                echo %%f|findstr /i /l ".mdb">nul
-                if !errorlevel! equ 0 (
-                    esentutl.exe /p "%%~nxf" /o > nul
+            if not exist "%outdir%\sum\fixed" (
+                mkdir "%outdir%\sum\fixed" 2> nul
+                ROBOCOPY "%indir%\sum" "%outdir%\sum\fixed" /E /COPY:DT /DCOPY:T > nul
+                attrib -r "%outdir%\sum\fixed\*.*" /s
+                pushd "%outdir%\sum\fixed"
+                esentutl.exe /r svc /i > nul
+                for /R "%outdir%\sum" %%f in (*) do (
+                    echo %%f|findstr /i /l ".mdb">nul
+                    if !errorlevel! equ 0 (
+                        esentutl.exe /p "%%~nxf" /o > nul
+                    )
                 )
+                popd
             )
-            popd
 
             echo [+] Parse SUM with SumECmd
-            echo SumECmd -d "%outdir%\sum" --csv "%outdir%\sum"
-            SumECmd -d "%outdir%\sum" --csv "%outdir%\sum" > nul
+            echo SumECmd -d "%outdir%\sum\fixed" --csv "%outdir%\sum"
+            SumECmd -d "%outdir%\sum\fixed" --csv "%outdir%\sum" > nul
         ) else (
             echo [-] Skipped parsing SUM with SumECmd
         )
@@ -699,17 +694,20 @@ if exist "%indir%\srum" (
     if exist "%indir%\srum\SRUDB.dat" (
         if not exist "%outdir%\srum" (
             set res=F
-            if /I x"%srumdump%" == x"true" rest=T
-            if /I x"%SrumECmd%" == x"true" rest=T
+            if /I x"%srumdump%" == x"true" set res=T
+            if /I x"%SrumECmd%" == x"true" set res=T
             if "!res!"=="T" (
                 echo [+] Parse SRUM
                 echo [+] Backup SRUM related files first to fix the database up
-                ROBOCOPY "%indir%\srum" "%outdir%\srum" /E /COPY:DT /DCOPY:T > nul
-                attrib -r "%outdir%\srum\*.*" /s
-                pushd "%outdir%\srum"
-                esentutl.exe /r sru /i > nul
-                esentutl.exe /p SRUDB.dat /o > nul
-                popd
+                if not exist "%outdir%\srum\fixed" (
+                    mkdir "%outdir%\srum\fixed" 2> nul
+                    ROBOCOPY "%indir%\srum" "%outdir%\srum\fixed" /E /COPY:DT /DCOPY:T > nul
+                    attrib -r "%outdir%\srum\fixed\*.*" /s
+                    pushd "%outdir%\srum\fixed"
+                    esentutl.exe /r sru /i > nul
+                    esentutl.exe /p SRUDB.dat /o > nul
+                    popd
+                )
             )
 
             if /I x"%srumdump%" == x"true" (
@@ -719,15 +717,15 @@ if exist "%indir%\srum" (
                 if exist "%regindir%\SOFTWARE" (
                     set SOFT_HIVE=-r "%regindir%\SOFTWARE"
                 )
-                echo srum_dump2 -i "%outdir%\srum\SRUDB.dat" -o "%outdir%\srum.xlsx" -t "SRUM_TEMPLATE3.xlsx" !SOFT_HIVE!
-                srum_dump2 -i "%outdir%\srum\SRUDB.dat" -o "%outdir%\srum.xlsx" -t "SRUM_TEMPLATE3.xlsx" !SOFT_HIVE! > nul
+                echo srum_dump2 -i "%outdir%\srum\fixed\SRUDB.dat" -o "%outdir%\srum\srum.xlsx" -t "SRUM_TEMPLATE3.xlsx" !SOFT_HIVE!
+                srum_dump2 -i "%outdir%\srum\fixed\SRUDB.dat" -o "%outdir%\srum\srum.xlsx" -t "SRUM_TEMPLATE3.xlsx" !SOFT_HIVE! > nul
                 echo.
             )
 
             if /I x"%SrumECmd%" == x"true" (
                 echo [+] Parse SRUM with SrumECmd
-                echo SrumECmd -f "%outdir%\srum\SRUDB.dat" --csv "%outdir%" !SOFT_HIVE!
-                SrumECmd -f  "%outdir%\srum\SRUDB.dat" --csv "%outdir%" !SOFT_HIVE! > nul
+                echo SrumECmd -f "%outdir%\srum\fixed\SRUDB.dat" --csv "%outdir%\srum" !SOFT_HIVE!
+                SrumECmd -f  "%outdir%\srum\fixed\SRUDB.dat" --csv "%outdir%\srum" !SOFT_HIVE! > nul
                 echo.
             )
         ) else (
