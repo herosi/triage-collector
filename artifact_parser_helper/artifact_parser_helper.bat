@@ -11,6 +11,7 @@ rem set rlaoutdir=%outdir%\Registry_fixed
 set regoutdir=%outdir%\Registry
 set recmdoutdir=%regoutdir%\EZTools
 set rroutdir=%regoutdir%\RegRipper
+set regfixeddir=%regoutdir%\fixed
 set yarpoutdir=%regoutdir%\yarp
 
 setlocal enabledelayedexpansion
@@ -511,11 +512,11 @@ if exist "%indir%\Registry" (
 
     mkdir "%regoutdir%" 2> nul
     rem mkdir "%rlaoutdir%" 2> nul
+    mkdir "%regfixeddir%" 2> nul
     mkdir "%rroutdir%" 2> nul
-    mkdir "%recmdoutdir%" 2> nul
     mkdir "%yarpoutdir%" 2> nul
+    mkdir "%recmdoutdir%" 2> nul
 
-    echo [+] Process all registry hives with RECmd
     rem rla -d "%regindir%" --out "%rlaoutdir%" --ca true --cn false
     rem set regindir=%rlaoutdir%
 
@@ -548,29 +549,44 @@ if exist "%indir%\Registry" (
     )
 
     echo [+] Process each registry hive
+    set res=F
+    if /I x"%RegRipper%" == x"true" set res=T
+    if /I x"%RECmd%" == x"true" set res=T
+    if /I x"%AmcacheParser%" == x"true" set res=T
+    if /I x"%AppCompatCacheParser%" == x"true" set res=T
+    if /I x"%YarpTimeline%" == x"true" set res=T
+    if /I x"%YarpPrint%" == x"true" set res=T
+    if "!res!"=="T" (
     for /R "%regindir%" %%f in (*) do (
         echo "%%f"|findstr /i /R "\\txr\\ \.log[0-9]">nul
         if !errorlevel! neq 0 (
+            set res=F
+            if /I x"%RegRipper%" == x"true" if not exist "%rroutdir%\%%~nxf_rip.txt" set res=T
+            if /I x"%YarpTimeline%" == x"true" if not exist "%yarpoutdir%\%%~nxf_yt.txt" set res=T
+            if /I x"%YarpPrint%" == x"true" if not exist "%yarpoutdir%\%%~nxf_yp.txt" set res=T
+            if "!res!"=="T" (
+                dir /b "%regfixeddir%" | findstr /I /R "%%~nxf_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]@[0-9][0-9][0-9]">nul
+                if !errorlevel! neq 0 (
+                    echo [+] Check if %%~nxf is dirty or not
+                    python registryFlush.py -f "%%f" -o "%regfixeddir%"
+                    echo.
+                )
+                set fixed_infile=%%f
+                dir /b "%regfixeddir%" | findstr /I /R "%%~nxf_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]@[0-9][0-9][0-9]">nul
+                if !errorlevel! equ 0 (
+                    for /f "delims=" %%a in ('dir /b "%regfixeddir%" ^| findstr /I /R "%%~nxf_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]@[0-9][0-9][0-9]" ') do (
+                        set fixed_infile=%regfixeddir%\%%a
+                    )
+                )
+            )
             if /I x"%RegRipper%" == x"true" (
                 :: execute regripper
                 if not exist "%rroutdir%\%%~nxf_rip.txt" (
-                    echo [+] Check if %%~nxf is dirty or not
-                    dir /b "%rroutdir%" | findstr /I /R "%%~nxf_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]@[0-9][0-9][0-9]"
-                    if !errorlevel! neq 0 (
-                        python registryFlush.py -f "%%f" -o "%rroutdir%"
-                    )
-                    set rrinfile=%%f
-                    dir /b "%rroutdir%" | findstr /I /R "%%~nxf_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]@[0-9][0-9][0-9]">nul
-                    if !errorlevel! equ 0 (
-                        for /f "delims=" %%a in ('dir /b "%rroutdir%" ^| findstr /I /R "%%~nxf_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]@[0-9][0-9][0-9]" ') do (
-                            set rrinfile=%rroutdir%\%%a
-                        )
-                    )
                     echo [+] Parse %%~nxf with RegRipper
-                    echo rip -r "!rrinfile!" -a ^> "%rroutdir%\%%~nxf_rip.txt"
-                    rip -r "!rrinfile!" -a > "%rroutdir%\%%~nxf_rip.txt" 2>nul
-                    echo rip -r "!rrinfile!" -aT ^> "%rroutdir%\%%~nxf_rip_tn.csv"
-                    rip -r "!rrinfile!" -aT > "%rroutdir%\%%~nxf_rip_tn.csv" 2>nul
+                    echo rip -r "!fixed_infile!" -a ^> "%rroutdir%\%%~nxf_rip.txt"
+                    rip -r "!fixed_infile!" -a > "%rroutdir%\%%~nxf_rip.txt" 2>nul
+                    echo rip -r "!fixed_infile!" -aT ^> "%rroutdir%\%%~nxf_rip_tn.csv"
+                    rip -r "!fixed_infile!" -aT > "%rroutdir%\%%~nxf_rip_tn.csv" 2>nul
                 ) else (
                     echo [-] Skipped parsing %%~nxf with RegRipper
                 )
@@ -581,8 +597,8 @@ if exist "%indir%\Registry" (
                 :: execute yarp-timeline
                 if not exist "%yarpoutdir%\%%~nxf_yt.txt" (
                     echo [+] Parse %%~nxf with yarp-timeline
-                    echo python %YARPPath%\yarp-timeline "%%f" ^> "%yarpoutdir%\%%~nxf_yt.txt"
-                    python %YARPPath%\yarp-timeline "%%f" > "%yarpoutdir%\%%~nxf_yt.txt"
+                    echo python %YARPPath%\yarp-timeline "!fixed_infile!" ^> "%yarpoutdir%\%%~nxf_yt.txt"
+                    python %YARPPath%\yarp-timeline "!fixed_infile!" > "%yarpoutdir%\%%~nxf_yt.txt"
                 ) else (
                     echo [-] Skipped parsing %%~nxf with yarp-timeline
                 )
@@ -593,15 +609,19 @@ if exist "%indir%\Registry" (
                 :: execute yarp-print
                 if not exist "%yarpoutdir%\%%~nxf_yp.txt" (
                     echo [+] Parse %%~nxf with yarp-print
-                    echo python %YARPPath%\yarp-print "%%f" --deleted ^> "%yarpoutdir%\%%~nxf_yp.txt"
-                    python %YARPPath%\yarp-print --deleted "%%f" > "%yarpoutdir%\%%~nxf_yp.txt"
+                    echo python %YARPPath%\yarp-print --deleted "!fixed_infile!" ^> "%yarpoutdir%\%%~nxf_yp.txt"
+                    python %YARPPath%\yarp-print --deleted "!fixed_infile!" > "%yarpoutdir%\%%~nxf_yp.txt"
                 ) else (
                     echo [-] Skipped parsing %%~nxf with yarp-print
                 )
                 echo.
             )
 
-            if /I x"%RECmd%" == x"true" (
+            set res=F
+            if /I x"%RECmd%" == x"true" set res=T
+            if /I x"%AmcacheParser%" == x"true" set res=T
+            if /I x"%AppCompatCacheParser%" == x"true" set res=T
+            if "!res!"=="T" (
                 echo "%%~nxf"|findstr /i /R ".*ntuser.dat .*usrclass.dat">nul
                 if !errorlevel! equ 0 (
                     :: execute recmd
@@ -659,33 +679,36 @@ if exist "%indir%\Registry" (
                         echo.
                     )
 
-                    dir /b "%recmdoutdir%" | findstr /i /l "_SYSTEM_AppCompatCache.csv">nul
-                    if !errorlevel! neq 0 (
-                        echo [+] Parse %%~nxf with AppCompatCacheParser
-                        echo AppCompatCacheParser -f "%%f" --csv "%recmdoutdir%"
-                        AppCompatCacheParser -f "%%f" --csv "%recmdoutdir%" > nul
-                    ) else (
-                        echo [-] Skipped parsing %%~nxf with AppCompatCacheParser
+                    if /I x"%AppCompatCacheParser%" == x"true" (
+                        dir /b "%recmdoutdir%" | findstr /i /l "_SYSTEM_AppCompatCache.csv">nul
+                        if !errorlevel! neq 0 (
+                            echo [+] Parse %%~nxf with AppCompatCacheParser
+                            echo AppCompatCacheParser -f "%%f" --csv "%recmdoutdir%"
+                            AppCompatCacheParser -f "%%f" --csv "%recmdoutdir%" > nul
+                        ) else (
+                            echo [-] Skipped parsing %%~nxf with AppCompatCacheParser
+                        )
+                        echo.
                     )
-                    echo.
                 )
 
                 echo "%%~nxf"|findstr /i /l "amcache.hve">nul
                 if !errorlevel! equ 0 (
-                    dir /b "%recmdoutdir%" | findstr /i /r "_Amcache_.*\.csv">nul
-                    if !errorlevel! neq 0 (
-                        echo [+] Parse %%~nxf with AmcacheParser
-                        echo AmcacheParser -f "%%f" --csv "%recmdoutdir%"
-                        AmcacheParser -f "%%f" --csv "%recmdoutdir%" > nul
-                    ) else (
-                        echo [-] Skipped parsing %%~nxf with AmcacheParser
+                    if /I x"%AmcacheParser%" == x"true" (
+                        dir /b "%recmdoutdir%" | findstr /i /r "_Amcache_.*\.csv">nul
+                        if !errorlevel! neq 0 (
+                            echo [+] Parse %%~nxf with AmcacheParser
+                            echo AmcacheParser -f "%%f" --csv "%recmdoutdir%"
+                            AmcacheParser -f "%%f" --csv "%recmdoutdir%" > nul
+                        ) else (
+                            echo [-] Skipped parsing %%~nxf with AmcacheParser
+                        )
+                        echo.
                     )
-                    echo.
                 )
             )
-        ) else (
-            echo [-] Skipped parsing %%f
         )
+    )
     )
     echo.
 )
@@ -890,14 +913,22 @@ if exist "%indir%\rdpcache" (
 
 :: Clean up
 echo [+] Delete empty folders
-rem for "%outdir%" %%f in (*) do (
-for /R "%outdir%" %%f in (.) do (
-        dir /b /a "%%f" | findstr /R ".*" > nul
-        if !errorlevel! neq 0 (
-            echo [+] Delete "%%f" folder because this is empty
-            rmdir /s /q "%%f"
+:del_loop
+    set rmdir_flag=0
+    for /R "%outdir%" %%f in (.) do (
+        if exist "%%f" (
+            dir /b /a "%%f" | findstr /R ".*" > nul
+            if !errorlevel! neq 0 (
+                echo [+] Delete "%%f" folder because this is empty
+                rmdir /s /q "%%f" 2> nul
+                if not exist "%%f" (
+                    set rmdir_flag=1
+                )
+            )
         )
-)
+    )
+if !rmdir_flag! equ 1 goto del_loop
+:: end del_loop
 
 endlocal
 
@@ -926,34 +957,6 @@ endlocal & (
   set %4=%SPLIT_RESULT%
 )
 exit /b
-
-setlocal enableextensions enabledelayedexpansion
-set file=%~1
-set area=[%~2]
-set key=%~3
-set result=%4
-
-set currarea=
-for /f "usebackq delims=" %%a in ("!file!") do (
-    set ln=%%a
-    if "x!ln:~0,1!"=="x[" (
-        set currarea=!ln!
-    ) else (
-        for /f "tokens=1,2 delims==" %%b in ("!ln!") do (
-            set currkey=%%b
-            set currval=%%c
-            if "x!area!"=="x!currarea!" if "x!key!"=="x!currkey!" (
-                echo !currval!
-                set result=!currval!
-            )
-        )
-    )
-)
-endlocal & (
-  set %4=!result!
-)
-exit /b
-
 
 :GET_INI_VALUE
 setlocal enableextensions enabledelayedexpansion
