@@ -5,40 +5,40 @@
 ** DO NOT ask me about this. **
 
 ## Requirement
-RECmd
-AmcacheParser
-AppCompatCacheParser
-SBECmd
-RegRipper3
-yarp
-registryFlush.py (to process jornal logs for regripper)
+[RECmd](https://ericzimmerman.github.io/)
+[AmcacheParser](https://ericzimmerman.github.io/)
+[AppCompatCacheParser](https://ericzimmerman.github.io/)
+[SBECmd](https://ericzimmerman.github.io/)
+[RegRipper3](https://github.com/keydet89/RegRipper3.0)
+[yarp](https://github.com/msuhanov/yarp)
 
-EvtxECmd
-hayabusa
-evtxexport
-evtx_dump by omerbenamram
+[registryFlush.py](https://github.com/Silv3rHorn/4n6_misc/blob/master/registryFlush.py) (to process jornal logs for regripper)
+
+[EvtxECmd](https://ericzimmerman.github.io/)
+[hayabusa](https://github.com/Yamato-Security/hayabusa)
+[evtxexport](https://github.com/libyal/libevtx)
+[evtx_dump](https://github.com/omerbenamram/evtx) by omerbenamram
 xml_evtx_parse.py for evtx_dump to convert xml into csv (attached)
 
-MFTECmd
-NTFS_Log_Tracker_CMD
-mactime.pl (from SleuthKit)
+[MFTECmd](https://ericzimmerman.github.io/)
+[NTFS_Log_Tracker_CMD](https://sites.google.com/site/forensicnote/ntfs-log-tracker)
+[mactime.pl](https://www.sleuthkit.org/) (from SleuthKit)
 
-SumECmd
-SrumECmd
-srum_dump2
+[srum_dump2](https://github.com/MarkBaggett/srum-dump)
+[SrumECmd](https://ericzimmerman.github.io/)
+[SumECmd](https://ericzimmerman.github.io/)
+[PECmd](https://ericzimmerman.github.io/)
+[JLECmd](https://ericzimmerman.github.io/)
+[LECmd](https://ericzimmerman.github.io/)
+[RBCmd](https://ericzimmerman.github.io/)
+[WxTCmd](https://ericzimmerman.github.io/)
+[BrowsingHistoryView](https://www.nirsoft.net/utils/browsing_history_view.html)
+[flare-wmi](https://github.com/mandiant/flare-wmi)
+[thumbcache_viewer_cmd.exe](https://thumbcacheviewer.github.io/)
+[sidr](https://github.com/strozfriedberg/sidr)
 
-PECmd
-JLECmd
-LECmd
-RBCmd
-WxTCmd
-BrowsingHistoryView
-flare-wmi
-thumbcache_viewer_cmd.exe
-sidr
-
-bmc-tools.py
-rdpieces.pl
+[bmc-tools.py](https://github.com/ANSSI-FR/bmc-tools)
+[rdpieces.pl](https://github.com/brimorlabs/rdpieces)
 task_parser.py (attached)
 
 ** And of course, you need to resolve the dependencies of the tools above. **

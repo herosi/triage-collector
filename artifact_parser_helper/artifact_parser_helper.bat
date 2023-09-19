@@ -562,7 +562,7 @@ if exist "%indir%\Registry" (
         if !errorlevel! neq 0 (
             set res=F
             if /I x"%RegRipper%" == x"true" if not exist "%rroutdir%\%%~nxf_rip.txt" set res=T
-            if /I x"%YarpTimeline%" == x"true" if not exist "%yarpoutdir%\%%~nxf_yt.txt" set res=T
+            if /I x"%YarpTimeline%" == x"true" if not exist "%yarpoutdir%\%%~nxf_yt.csv" set res=T
             if /I x"%YarpPrint%" == x"true" if not exist "%yarpoutdir%\%%~nxf_yp.txt" set res=T
             if "!res!"=="T" (
                 dir /b "%regfixeddir%" | findstr /I /R "%%~nxf_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]@[0-9][0-9][0-9]">nul
@@ -579,6 +579,7 @@ if exist "%indir%\Registry" (
                     )
                 )
             )
+
             if /I x"%RegRipper%" == x"true" (
                 :: execute regripper
                 if not exist "%rroutdir%\%%~nxf_rip.txt" (
@@ -595,10 +596,10 @@ if exist "%indir%\Registry" (
 
             if /I x"%YarpTimeline%" == x"true" (
                 :: execute yarp-timeline
-                if not exist "%yarpoutdir%\%%~nxf_yt.txt" (
+                if not exist "%yarpoutdir%\%%~nxf_yt.csv" (
                     echo [+] Parse %%~nxf with yarp-timeline
-                    echo python %YARPPath%\yarp-timeline "!fixed_infile!" ^> "%yarpoutdir%\%%~nxf_yt.txt"
-                    python %YARPPath%\yarp-timeline "!fixed_infile!" > "%yarpoutdir%\%%~nxf_yt.txt"
+                    echo python %YARPPath%\yarp-timeline "!fixed_infile!" ^> "%yarpoutdir%\%%~nxf_yt.csv"
+                    python %YARPPath%\yarp-timeline "!fixed_infile!" > "%yarpoutdir%\%%~nxf_yt.csv"
                 ) else (
                     echo [-] Skipped parsing %%~nxf with yarp-timeline
                 )
