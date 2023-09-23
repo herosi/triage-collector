@@ -34,6 +34,7 @@ call :GET_INI_VALUE "!inifile!" Parser NLT_J
 call :GET_INI_VALUE "!inifile!" Parser EvtxECmd
 call :GET_INI_VALUE "!inifile!" Parser HAYABUSA
 call :GET_INI_VALUE "!inifile!" Parser RECmd
+call :GET_INI_VALUE "!inifile!" Parser RECmd_IIJ
 call :GET_INI_VALUE "!inifile!" Parser RegRipper
 call :GET_INI_VALUE "!inifile!" Parser AmcacheParser
 call :GET_INI_VALUE "!inifile!" Parser AppCompatCacheParser
@@ -73,6 +74,7 @@ echo             Event log with evtx_dump by omerbenamram: %evtx_dump%
 echo                    Event log with evtxexport as text: %evtxexport_txt%
 echo                     Event log with evtxexport as XML: %evtxexport_xml%
 echo                                  Registry with RECmd: %RECmd%
+echo        Registry with RECmd with IIJ Check list batch: %RECmd_IIJ%
 echo                             Registry with RegRipper3: %RegRipper%
 echo                          Registry with yarp-timeline: %YarpTimeline%
 echo                             Registry with yarp-print: %YarpPrint%
@@ -101,6 +103,11 @@ call :GET_INI_VALUE "!inifile!" RECmd REBatchFolder
 call :GET_INI_VALUE "!inifile!" RECmd REBatches
 echo RECmd's batch folder: %REBatchFolder%
 echo RECmd's batch files: %REBatches%
+echo.
+call :GET_INI_VALUE "!inifile!" RECmd IIJ_REBatchFolder
+call :GET_INI_VALUE "!inifile!" RECmd IIJ_REBatches
+echo RECmd's batch folder for IIJ check list: %IIJ_REBatchFolder%
+echo RECmd's batch files for IIJ check list: %IIJ_REBatches%
 echo.
 
 echo [*] yarp settings
@@ -530,6 +537,21 @@ if exist "%indir%\Registry" (
                 recmd --recover true --bn "%REBatchFolder%\%%b.reb" -d "%regindir%" --csv "%recmdoutdir%" > nul
             ) else (
                 echo [-] Skipped parsing all registry hives with %%b.reb with RECmd
+            )
+            echo.
+        )
+    )
+
+    if /I x"%RECmd_IIJ%" == x"true" (
+        echo [+] Process all registry hives with RECmd with IIJ check list
+        for %%b in (%IIJ_REBatches%) do (
+            dir /b "%recmdoutdir%" | findstr /i /l "_RECmd_Batch_%%b_Output.csv">nul
+            if !errorlevel! neq 0 (
+                echo [+] Parse all registry hives with %%b.reb with RECmd
+                echo recmd --recover true --bn "%IIJ_REBatchFolder%\%%b.reb" -d "%regindir%" --csv "%recmdoutdir%"
+                recmd --recover true --bn "%IIJ_REBatchFolder%\%%b.reb" -d "%regindir%" --csv "%recmdoutdir%" > nul
+            ) else (
+                echo [-] Skipped parsing all registry hives with %%b.reb with RECmd with IIJ check list
             )
             echo.
         )
