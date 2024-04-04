@@ -46,6 +46,7 @@ without compilation as well as pre-defined artifacts.
     * Search Indexor
     * Thunderbird (needed to uncomment the line)
     * Outlook (needed to uncomment the line)
+    * PCA (Program Compatibility Assistant)
 
 triage-collector was based on cdir-collector. Since the author ignored my PR, I decided to fork it and modified it a lot.
 The differences between this and the original cdir-collector v1.3.6 are:
