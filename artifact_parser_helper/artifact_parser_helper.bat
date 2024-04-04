@@ -218,8 +218,8 @@ if exist "%indir%\Evtx" (
                 set LOGTYPE=-t system
             )
             if not exist "!eeoutdir!\%%~nxf.txt" (
-                  echo evtxexport -m all %CP_OPT_EE% !LOGTYPE! !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" ^> "!eeoutdir!\%%~nxf.txt"
-                  evtxexport -m all %CP_OPT_EE% !LOGTYPE! !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" > "!eeoutdir!\%%~nxf.txt"
+                echo evtxexport -m all %CP_OPT_EE% !LOGTYPE! !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" ^> "!eeoutdir!\%%~nxf.txt"
+                evtxexport -m all %CP_OPT_EE% !LOGTYPE! !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" > "!eeoutdir!\%%~nxf.txt"
             )
         )
         echo.
@@ -239,8 +239,8 @@ if exist "%indir%\Evtx" (
                 set LOGTYPE=-t system
             )
             if not exist "!eeoutdir!\%%~nxf.xml" (
-                  echo evtxexport -f xml -T -m all !LOGTYPE! %CP_OPT_EE% !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" ^> "!eeoutdir!\%%~nxf.xml"
-                  evtxexport -f xml -T -m all !LOGTYPE! %CP_OPT_EE% !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" > "!eeoutdir!\%%~nxf.xml"
+                echo evtxexport -f xml -T -m all !LOGTYPE! %CP_OPT_EE% !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" ^> "!eeoutdir!\%%~nxf.xml"
+                evtxexport -f xml -T -m all !LOGTYPE! %CP_OPT_EE% !SOFT_HIVE_OPT! !SYS_HIVE_OPT! "%%f" > "!eeoutdir!\%%~nxf.xml"
             )
         )
         echo.
