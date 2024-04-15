@@ -4,6 +4,12 @@
 ** This is just attached for me and those who can understand what it does. **  
 ** DO NOT ask me about this. **  
 
+## Usage
+```
+cd triage-collector_x64\artifact_parser_helper
+.\artifact_parser_helper.bat path_to_input_dir path_to_outut_dir [path_to_ini_file] [codepage] [drive_letter]
+```
+
 ## Requirement
 [RECmd](https://ericzimmerman.github.io/)  
 [AmcacheParser](https://ericzimmerman.github.io/)  
@@ -36,8 +42,8 @@ xml_evtx_parse.py for evtx_dump to convert xml into csv (attached)
 [flare-wmi](https://github.com/mandiant/flare-wmi)  
 [thumbcache_viewer_cmd.exe](https://thumbcacheviewer.github.io/)  
 [sidr](https://github.com/strozfriedberg/sidr)  
-[BitsParser](https://github.com/digitalsleuth/BitsParser)
-[jq](https://jqlang.github.io/jq/)
+[BitsParser](https://github.com/digitalsleuth/BitsParser)  
+[jq](https://jqlang.github.io/jq/)  
   
 [bmc-tools.py](https://github.com/ANSSI-FR/bmc-tools)  
 [rdpieces.pl](https://github.com/brimorlabs/rdpieces)  
