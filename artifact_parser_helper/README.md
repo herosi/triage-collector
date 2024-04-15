@@ -36,6 +36,8 @@ xml_evtx_parse.py for evtx_dump to convert xml into csv (attached)
 [flare-wmi](https://github.com/mandiant/flare-wmi)  
 [thumbcache_viewer_cmd.exe](https://thumbcacheviewer.github.io/)  
 [sidr](https://github.com/strozfriedberg/sidr)  
+[BitsParser](https://github.com/digitalsleuth/BitsParser)
+[jq](https://jqlang.github.io/jq/)
   
 [bmc-tools.py](https://github.com/ANSSI-FR/bmc-tools)  
 [rdpieces.pl](https://github.com/brimorlabs/rdpieces)  

@@ -59,6 +59,7 @@ call :GET_INI_VALUE "!inifile!" Parser evtxexport_txt
 call :GET_INI_VALUE "!inifile!" Parser evtxexport_xml
 call :GET_INI_VALUE "!inifile!" Parser evtx_dump
 call :GET_INI_VALUE "!inifile!" Parser SIDR
+call :GET_INI_VALUE "!inifile!" Parser BitsParser
 
 echo [*] Parser settings
 echo                                     MFT with MFTECmd: %MFTECmd_MFT%
@@ -96,6 +97,7 @@ echo                    Tasks folders with task_parser.py: %TASKS%
 echo                          RDP cache with bmc-tools.py: %BmcTools%
 echo                bmc-tools.py results with rdpieces.pl: %Rdpieces%
 echo                             Search Indexor with sidr: %SIDR%
+echo                        BITS database with BitsParser: %BitsParser%
 echo.
 
 echo [*] RECmd settings
@@ -113,6 +115,11 @@ echo.
 echo [*] yarp settings
 call :GET_INI_VALUE "!inifile!" yarp YARPPath
 echo YARP folder: %YARPPath%
+echo.
+
+echo [*] BitsParser settings
+call :GET_INI_VALUE "!inifile!" BitsParser BPPath
+echo BitsParser folder: %BPPath%
 echo.
 
 call :GET_INI_VALUE "!inifile!" Common codepage
@@ -352,6 +359,30 @@ if exist "%indir%\sum" (
             SumECmd -d "%outdir%\sum\fixed" --csv "%outdir%\sum" > nul
         ) else (
             echo [-] Skipped parsing SUM with SumECmd
+        )
+        echo.
+    )
+)
+
+if exist "%indir%\BITS" (
+    if /I x"%BitsParser%" == x"true" (
+        echo [+] Parse BITS database with BitsParser
+        if not exist "%outdir%\BITS" (
+            mkdir "%outdir%\BITS" 2> nul
+            echo [+] Parse BITS database with BitsParser
+            echo python %BPPath%\BitsParser.py -i "%indir%\BITS\qmgr.db" -o "%outdir%\BITS\qmgr.db.json" --carveall
+            python %BPPath%\BitsParser.py -i "%indir%\BITS\qmgr.db" -o "%outdir%\BITS\qmgr.db.json" --carveall
+            if not exist "%outdir%\BITS\qmgr.db.csv" (
+                echo [+] Convert JSON into csv
+                echo echo CreationTime,ModifiedTime,Carved,JobType,JobState,JobName,OwnerSID,DestFile,SourceURL,TmpFile,DownloadByteSize ^> "%outdir%\BITS\qmgr.db.csv"
+                echo CreationTime,ModifiedTime,Carved,JobType,JobState,JobName,OwnerSID,DestFile,SourceURL,TmpFile,DownloadByteSize > "%outdir%\BITS\qmgr.db.csv"
+                echo jq -r ". | [.CreationTime, .ModifiedTime, .Carved, .JobType, .JobState, .JobName, .OwnerSID, (.Files[]? | if length == 0 then null,null,null,null  else .DestFile,.SourceURL,.TmpFile,.DownloadByteSize end)] | @csv" "%outdir%\BITS\qmgr.db.json" ^>^> "%outdir%\BITS\qmgr.db.csv"
+                jq -r ". | [.CreationTime, .ModifiedTime, .Carved, .JobType, .JobState, .JobName, .OwnerSID, (.Files[]? | if length == 0 then null,null,null,null  else .DestFile,.SourceURL,.TmpFile,.DownloadByteSize end)] | @csv" "%outdir%\BITS\qmgr.db.json" >> "%outdir%\BITS\qmgr.db.csv"
+            ) else (
+                echo [-] Skipped converting JSON into csv
+            )
+        ) else (
+            echo [-] Skipped parsing BITS with BitsParser
         )
         echo.
     )
