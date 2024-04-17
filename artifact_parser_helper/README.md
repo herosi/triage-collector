@@ -22,6 +22,7 @@ cd triage-collector_x64\artifact_parser_helper
   
 [EvtxECmd](https://ericzimmerman.github.io/)  
 [hayabusa](https://github.com/Yamato-Security/hayabusa)  
+[chainsaw](https://github.com/WithSecureLabs/chainsaw)  
 [evtxexport](https://github.com/libyal/libevtx)  
 [evtx_dump](https://github.com/omerbenamram/evtx) by omerbenamram  
 xml_evtx_parse.py for evtx_dump to convert xml into csv (attached)  

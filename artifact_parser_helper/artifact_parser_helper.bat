@@ -33,6 +33,7 @@ call :GET_INI_VALUE "!inifile!" Parser NLT_Log
 call :GET_INI_VALUE "!inifile!" Parser NLT_J
 call :GET_INI_VALUE "!inifile!" Parser EvtxECmd
 call :GET_INI_VALUE "!inifile!" Parser HAYABUSA
+call :GET_INI_VALUE "!inifile!" Parser CHAINSAW
 call :GET_INI_VALUE "!inifile!" Parser RECmd
 call :GET_INI_VALUE "!inifile!" Parser RECmd_IIJ
 call :GET_INI_VALUE "!inifile!" Parser RegRipper
@@ -71,6 +72,7 @@ echo                       $Logfile with NTFS Log Tracker: %NLT_Log%
 echo                     UnsJrnl:$J with NTFS Log Tracker: %NLT_J%
 echo                              Event log with EvtxECmd: %EvtxECmd%
 echo                              Event log with hayabusa: %HAYABUSA%
+echo                              Event log with chainsaw: %CHAINSAW%
 echo             Event log with evtx_dump by omerbenamram: %evtx_dump%
 echo                    Event log with evtxexport as text: %evtxexport_txt%
 echo                     Event log with evtxexport as XML: %evtxexport_xml%
@@ -122,6 +124,11 @@ call :GET_INI_VALUE "!inifile!" BitsParser BPPath
 echo BitsParser folder: %BPPath%
 echo.
 
+echo [*] chainsaw settings
+call :GET_INI_VALUE "!inifile!" chainsaw CSPath
+echo chainsaw folder: %CSPath%
+echo.
+
 call :GET_INI_VALUE "!inifile!" Common codepage
 if x"%codepage%" == x"" (
     call :CMDRESULT "chcp" chcpresult
@@ -140,10 +147,22 @@ if x"%driveletter%" == x"" (
 
 
 set HRC_OPT=
-for /F "tokens=* USEBACKQ" %%l in (`hayabusa csv-timeline`) do (
+for /F "tokens=* USEBACKQ" %%l in (`hayabusa csv-timeline --help`) do (
     echo "%%l"|findstr /i /C:"-x, --recover-records">nul
     if !errorlevel! equ 0 (
-        set HRC_OPT=-x -X
+        set HRC_OPT=!HRC_OPT! -x
+    )
+    echo "%%l"|findstr /i /C:"-R, --remove-duplicate-data">nul
+    if !errorlevel! equ 0 (
+        set HRC_OPT=!HRC_OPT! -R
+    )
+    echo "%%l"|findstr /i /C:"-w, --no-wizard">nul
+    if !errorlevel! equ 0 (
+        set HRC_OPT=!HRC_OPT! -w
+    )
+    echo "%%l"|findstr /i /C:"-X, --remove-duplicate-detections">nul
+    if !errorlevel! equ 0 (
+        set HRC_OPT=!HRC_OPT! -X
     )
 )
 
@@ -188,14 +207,29 @@ if exist "%indir%\Evtx" (
     if /I x"%HAYABUSA%" == x"true" (
         echo [+] Parse event logs with hayabusa
         if not exist "%outdir%\Evtx\hayabusa_default.csv" (
-            echo hayabusa.exe csv-timeline -d %HRC_OPT% "%indir%\Evtx" -o "%outdir%\Evtx\hayabusa_default.csv"
+            echo hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -o "%outdir%\Evtx\hayabusa_default.csv"
             hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -o "%outdir%\Evtx\hayabusa_default.csv"
         ) else (
             echo [-] Skipped parsing event logs with hayabusa
         )
         if not exist "%outdir%\Evtx\hayabusa_IIJ.csv" (
-            echo hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
-            hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
+            if exist "C:\tools\hayabusa_rules_by_IIJ" (
+                echo hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
+                hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
+            )
+        )
+        echo.
+    )
+
+    if /I x"%CHAINSAW%" == x"true" (
+        echo [+] Parse event logs with chainsaw
+        if not exist "%outdir%\Evtx\chainsaw" (
+            pushd "%CsPath%"
+            echo .\chainsaw.exe hunt "%indir%\Evtx" --local -s .\sigma\ -r .\rules\ --mapping .\mappings\sigma-event-logs-all.yml --csv --output "%outdir%\Evtx\chainsaw"
+            .\chainsaw.exe hunt "%indir%\Evtx" --local -s .\sigma\ -r .\rules\ --mapping .\mappings\sigma-event-logs-all.yml --csv --output "%outdir%\Evtx\chainsaw"
+            popd
+        ) else (
+            echo [-] Skipped parsing event logs with chainsaw
         )
         echo.
     )
