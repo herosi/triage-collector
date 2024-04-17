@@ -20,7 +20,7 @@ set PYTHONIOENCODING=UTF-8
 mkdir "%outdir%" 2> nul
 
 if x"%inifile%" == x"" (
-    set inifile=.\artifact_parser_helper.ini
+    set inifile=%~dp0artifact_parser_helper.ini
 )
 
 :: parsers
@@ -33,6 +33,7 @@ call :GET_INI_VALUE "!inifile!" Parser NLT_Log
 call :GET_INI_VALUE "!inifile!" Parser NLT_J
 call :GET_INI_VALUE "!inifile!" Parser EvtxECmd
 call :GET_INI_VALUE "!inifile!" Parser HAYABUSA
+call :GET_INI_VALUE "!inifile!" Parser TAKAJO
 call :GET_INI_VALUE "!inifile!" Parser CHAINSAW
 call :GET_INI_VALUE "!inifile!" Parser RECmd
 call :GET_INI_VALUE "!inifile!" Parser RECmd_IIJ
@@ -72,6 +73,7 @@ echo                       $Logfile with NTFS Log Tracker: %NLT_Log%
 echo                     UnsJrnl:$J with NTFS Log Tracker: %NLT_J%
 echo                              Event log with EvtxECmd: %EvtxECmd%
 echo                              Event log with hayabusa: %HAYABUSA%
+echo                              Event log with takajo  : %TAKAJO%
 echo                              Event log with chainsaw: %CHAINSAW%
 echo             Event log with evtx_dump by omerbenamram: %evtx_dump%
 echo                    Event log with evtxexport as text: %evtxexport_txt%
@@ -166,6 +168,22 @@ for /F "tokens=* USEBACKQ" %%l in (`hayabusa csv-timeline --help`) do (
     )
 )
 
+set HJRC_OPT=
+for /F "tokens=* USEBACKQ" %%l in (`hayabusa json-timeline --help`) do (
+    echo "%%l"|findstr /i /C:"-x, --recover-records">nul
+    if !errorlevel! equ 0 (
+        set HJRC_OPT=!HJRC_OPT! -x
+    )
+    echo "%%l"|findstr /i /C:"-w, --no-wizard">nul
+    if !errorlevel! equ 0 (
+        set HJRC_OPT=!HJRC_OPT! -w
+    )
+    echo "%%l"|findstr /i /C:"-X, --remove-duplicate-detections">nul
+    if !errorlevel! equ 0 (
+        set HJRC_OPT=!HJRC_OPT! -X
+    )
+)
+
 set CP_OPT=
 for /F "tokens=* USEBACKQ" %%l in (`lecmd`) do (
     echo "%%l"|findstr /i /C:"--cp <cp>">nul
@@ -216,6 +234,40 @@ if exist "%indir%\Evtx" (
             if exist "C:\tools\hayabusa_rules_by_IIJ" (
                 echo hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
                 hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
+            )
+        )
+        echo.
+    )
+
+    if /I x"%TAKAJO%" == x"true" (
+        echo [+] Parse event logs with takajo
+        if not exist "%outdir%\Evtx\hayabusa_default.jsonl" (
+            echo hayabusa.exe json-timeline %HJRC_OPT% -d "%indir%\Evtx" -L -p verbose -o "%outdir%\Evtx\hayabusa_default.jsonl"
+            hayabusa.exe json-timeline %HJRC_OPT% -d "%indir%\Evtx" -L -p verbose -o "%outdir%\Evtx\hayabusa_default.jsonl"
+        ) else (
+            echo [-] Skipped parsing event logs with hayabusa ^(JSON^)
+        )
+        if exist "%outdir%\Evtx\hayabusa_default.jsonl" (
+            if not exist "%outdir%\Evtx\takajo" (
+                echo takajo.exe automagic -t "%outdir%\Evtx\hayabusa_default.jsonl" -o "%outdir%\Evtx\takajo"
+                takajo.exe automagic -t "%outdir%\Evtx\hayabusa_default.jsonl" -o "%outdir%\Evtx\takajo"
+            ) else (
+                echo [-] Skipped parsing hayabusa result ^(JSON^) with takajo
+            )
+        ) else (
+            echo [-] Skipped parsing hayabusa result ^(JSON^) with takajo
+        )
+        
+        if not exist "%outdir%\Evtx\hayabusa_IIJ.jsonl" (
+            if exist "C:\tools\hayabusa_rules_by_IIJ" (
+                echo hayabusa.exe json-timeline %HJRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -L -p verbose -o "%outdir%\Evtx\hayabusa_IIJ.jsonl"
+                hayabusa.exe json-timeline %HJRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -L -p verbose -o "%outdir%\Evtx\hayabusa_IIJ.jsonl"
+            )
+        )
+        if exist "%outdir%\Evtx\hayabusa_IIJ.jsonl" (
+            if not exist "%outdir%\Evtx\takajo_IIJ" (
+                echo takajo.exe automagic -t "%outdir%\Evtx\hayabusa_IIJ.jsonl" -o "%outdir%\Evtx\takajo_IIJ"
+                takajo.exe automagic -t "%outdir%\Evtx\hayabusa_IIJ.jsonl" -o "%outdir%\Evtx\takajo_IIJ"
             )
         )
         echo.

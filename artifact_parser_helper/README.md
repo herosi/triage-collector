@@ -22,6 +22,7 @@ cd triage-collector_x64\artifact_parser_helper
   
 [EvtxECmd](https://ericzimmerman.github.io/)  
 [hayabusa](https://github.com/Yamato-Security/hayabusa)  
+[takajo](https://github.com/Yamato-Security/takajo)  
 [chainsaw](https://github.com/WithSecureLabs/chainsaw)  
 [evtxexport](https://github.com/libyal/libevtx)  
 [evtx_dump](https://github.com/omerbenamram/evtx) by omerbenamram  
