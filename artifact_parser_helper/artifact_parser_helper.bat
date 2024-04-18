@@ -35,6 +35,7 @@ call :GET_INI_VALUE "!inifile!" Parser EvtxECmd
 call :GET_INI_VALUE "!inifile!" Parser HAYABUSA
 call :GET_INI_VALUE "!inifile!" Parser TAKAJO
 call :GET_INI_VALUE "!inifile!" Parser CHAINSAW
+call :GET_INI_VALUE "!inifile!" Parser ZIRCOLITE
 call :GET_INI_VALUE "!inifile!" Parser RECmd
 call :GET_INI_VALUE "!inifile!" Parser RECmd_IIJ
 call :GET_INI_VALUE "!inifile!" Parser RegRipper
@@ -75,6 +76,7 @@ echo                              Event log with EvtxECmd: %EvtxECmd%
 echo                              Event log with hayabusa: %HAYABUSA%
 echo                              Event log with takajo  : %TAKAJO%
 echo                              Event log with chainsaw: %CHAINSAW%
+echo                             Event log with zircolite: %ZIRCOLITE%
 echo             Event log with evtx_dump by omerbenamram: %evtx_dump%
 echo                    Event log with evtxexport as text: %evtxexport_txt%
 echo                     Event log with evtxexport as XML: %evtxexport_xml%
@@ -129,6 +131,11 @@ echo.
 echo [*] chainsaw settings
 call :GET_INI_VALUE "!inifile!" chainsaw CSPath
 echo chainsaw folder: %CSPath%
+echo.
+
+echo [*] zircolite settings
+call :GET_INI_VALUE "!inifile!" zircolite ZLPath
+echo zircolite folder: %ZLPath%
 echo.
 
 call :GET_INI_VALUE "!inifile!" Common codepage
@@ -276,12 +283,26 @@ if exist "%indir%\Evtx" (
     if /I x"%CHAINSAW%" == x"true" (
         echo [+] Parse event logs with chainsaw
         if not exist "%outdir%\Evtx\chainsaw" (
-            pushd "%CsPath%"
+            pushd "%CSPath%"
             echo .\chainsaw.exe hunt "%indir%\Evtx" --local -s .\sigma\ -r .\rules\ --mapping .\mappings\sigma-event-logs-all.yml --csv --output "%outdir%\Evtx\chainsaw"
             .\chainsaw.exe hunt "%indir%\Evtx" --local -s .\sigma\ -r .\rules\ --mapping .\mappings\sigma-event-logs-all.yml --csv --output "%outdir%\Evtx\chainsaw"
             popd
         ) else (
             echo [-] Skipped parsing event logs with chainsaw
+        )
+        echo.
+    )
+    
+    if /I x"%ZIRCOLITE%" == x"true" (
+        echo [+] Parse event logs with zircolite
+        if not exist "%outdir%\Evtx\zircogui" (
+            pushd "%ZLPath%"
+            powershell -Command "Expand-Archive -Force '.\gui\zircogui.zip' '%outdir%\Evtx\'"
+            echo .\zircolite.exe -e "%indir%\Evtx" --template .\templates\exportForZircoGui.tmpl --templateOutput "%outdir%\Evtx\zircogui\data.js"
+            .\zircolite.exe -e "%indir%\Evtx" --template .\templates\exportForZircoGui.tmpl --templateOutput "%outdir%\Evtx\zircogui\data.js"
+            popd
+        ) else (
+            echo [-] Skipped parsing event logs with zircolite
         )
         echo.
     )
