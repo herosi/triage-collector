@@ -474,17 +474,33 @@ if exist "%indir%\sum" (
 if exist "%indir%\BITS" (
     if /I x"%BitsParser%" == x"true" (
         echo [+] Parse BITS database with BitsParser
-        if not exist "%outdir%\BITS" (
-            mkdir "%outdir%\BITS" 2> nul
-            echo [+] Parse BITS database with BitsParser
-            echo python %BPPath%\BitsParser.py -i "%indir%\BITS\qmgr.db" -o "%outdir%\BITS\qmgr.db.json" --carveall
-            python %BPPath%\BitsParser.py -i "%indir%\BITS\qmgr.db" -o "%outdir%\BITS\qmgr.db.json" --carveall
-            if not exist "%outdir%\BITS\qmgr.db.csv" (
+        if not exist "%outdir%\BITS\bits_jobs.csv" (
+            if not exist "%outdir%\BITS" (
+                mkdir "%outdir%\BITS" 2> nul
+            )
+            if not exist "%outdir%\BITS\fixed" (
+                echo [+] Backup BITS database related files first to fix the database up
+                mkdir "%outdir%\BITS\fixed" 2> nul
+                ROBOCOPY "%indir%\BITS" "%outdir%\BITS\fixed" /E /COPY:DT /DCOPY:T > nul
+                attrib -r "%outdir%\BITS\fixed\*.*" /s
+                pushd "%outdir%\BITS\fixed"
+                esentutl.exe /r edb /i > nul
+                esentutl.exe /p "qmgr.db" /o > nul
+                popd
+            )
+            if not exist "%outdir%\BITS\bits_jobs.json" (
+                echo [+] Parse BITS database with BitsParser
+                echo python %BPPath%\BitsParser.py -i "%outdir%\BITS\fixed" -o "%outdir%\BITS\bits_jobs.json" --carveall
+                python %BPPath%\BitsParser.py -i "%outdir%\BITS\fixed" -o "%outdir%\BITS\bits_jobs.json" --carveall
+            ) else (
+                echo [-] Skipped Parsing BITS database with BitsParser
+            )
+            if not exist "%outdir%\BITS\bits_jobs.csv" (
                 echo [+] Convert JSON into csv
-                echo echo CreationTime,ModifiedTime,Carved,JobType,JobState,JobName,OwnerSID,DestFile,SourceURL,TmpFile,DownloadByteSize ^> "%outdir%\BITS\qmgr.db.csv"
-                echo CreationTime,ModifiedTime,Carved,JobType,JobState,JobName,OwnerSID,DestFile,SourceURL,TmpFile,DownloadByteSize > "%outdir%\BITS\qmgr.db.csv"
-                echo jq -r ". | [.CreationTime, .ModifiedTime, .Carved, .JobType, .JobState, .JobName, .OwnerSID, (.Files[]? | if length == 0 then null,null,null,null  else .DestFile,.SourceURL,.TmpFile,.DownloadByteSize end)] | @csv" "%outdir%\BITS\qmgr.db.json" ^>^> "%outdir%\BITS\qmgr.db.csv"
-                jq -r ". | [.CreationTime, .ModifiedTime, .Carved, .JobType, .JobState, .JobName, .OwnerSID, (.Files[]? | if length == 0 then null,null,null,null  else .DestFile,.SourceURL,.TmpFile,.DownloadByteSize end)] | @csv" "%outdir%\BITS\qmgr.db.json" >> "%outdir%\BITS\qmgr.db.csv"
+                echo echo CreationTime,ModifiedTime,Carved,JobType,JobState,JobName,OwnerSID,CommandExecuted,CommandArguments,DestFile,SourceURL,TmpFile,DownloadByteSize ^> "%outdir%\BITS\bits_jobs.csv"
+                echo CreationTime,ModifiedTime,Carved,JobType,JobState,JobName,OwnerSID,CommandExecuted,CommandArguments,DestFile,SourceURL,TmpFile,DownloadByteSize > "%outdir%\BITS\bits_jobs.csv"
+                echo jq -r ". | [.CreationTime, .ModifiedTime, .Carved, .JobType, .JobState, .JobName, .OwnerSID, .CommandExecuted, .CommandArguments, (.Files[]? | if length == 0 then null,null,null,null  else .DestFile,.SourceURL,.TmpFile,.DownloadByteSize end)] | @csv" "%outdir%\BITS\bits_jobs.json" ^>^> "%outdir%\BITS\bits_jobs.csv"
+                jq -r ". | [.CreationTime, .ModifiedTime, .Carved, .JobType, .JobState, .JobName, .OwnerSID, .CommandExecuted, .CommandArguments, (.Files[]? | if length == 0 then null,null,null,null  else .DestFile,.SourceURL,.TmpFile,.DownloadByteSize end)] | @csv" "%outdir%\BITS\bits_jobs.json" >> "%outdir%\BITS\bits_jobs.csv"
             ) else (
                 echo [-] Skipped converting JSON into csv
             )
