@@ -78,8 +78,18 @@ def get_records(source, nsmap={}):
 
 def parse_substitutions(elem, log_tz):
     result = {}
-    date_utc = ""
+    eid = -1
+    pid = -1
+    tid = -1
+    aid = -1
+    raid = -1
+    erid = -1
+    computer = ""
+    userid = ""
     date_local = ""
+    date_utc = ""
+    username = ""
+    channel = ""
     for gce in elem:
         gce_text = ""
         date_flag = False
@@ -90,9 +100,46 @@ def parse_substitutions(elem, log_tz):
                 gce_text = ggce.text
                 if date_flag:
                     date_utc, date_local = get_date(ggce.text, log_tz)
+        prev_idx = -1
         for k, v in tuple(gce.attrib.items()):
-            result[("%s_%02d" % (k, int(v)), "", "")] = gce_text
-    return date_utc, date_local, result
+            if v == "":
+                idx = -1
+            else:
+                idx = int(v)
+            tag_name = "%s_%02d" % (k, idx)
+            val = gce_text
+            if k == "index" and idx == 0:
+                 tag_name = "Level"
+            elif k == "index" and idx == 3:
+                 tag_name = "EventID"
+            elif k == "index" and idx == 5:
+                 tag_name = "Keywords"
+            elif k == "index" and idx == 6:
+                 tag_name = "TimeCreated"
+            elif k == "index" and idx == 8:
+                 tag_name = "ProcessID"
+                 pid = int(val)
+            elif k == "index" and idx == 9:
+                 tag_name = "ThreadID"
+                 tid = int(val)
+            elif k == "index" and idx == 10:
+                 tag_name = "EventRecordID"
+                 erid = int(val)
+            elif k == "index" and idx == 12:
+                 tag_name = "UserID"
+                 userid = val
+                 username = val
+            elif k == "index" and idx == 14:
+                 tag_name = "Provider_Name"
+            elif k == "index" and idx == 15:
+                 tag_name = "Provider_Guid"
+            elif k == "index" and idx == 16:
+                 tag_name = "Channel"
+                 channel = val
+            elif k == "index" and idx > 16:
+                 result[(tag_name, "", "")] = gce_text
+            prev_idx = idx
+    return date_utc, date_local, result, username, computer, channel, pid, tid, erid
 
 def parse_event_data(elem):
     result = {}
@@ -128,6 +175,7 @@ def parse_system(elem, nsmap, log_tz):
     tid = -1
     aid = -1
     raid = -1
+    erid = -1
     computer = ""
     userid = ""
     date_local = ""
@@ -227,7 +275,8 @@ def parse_childelem(elem, nsmap, attrib_conf, log_tz, source, all_flag=False, ad
     eid = -1
     pid = -1
     tid = -1
-    offst = -1
+    offset = -1
+    erid = -1
     dae_local = ""
     date_utc = ""
     username = ""
@@ -258,7 +307,7 @@ def parse_childelem(elem, nsmap, attrib_conf, log_tz, source, all_flag=False, ad
         elif ce.tag == "Offset":
             offset = int(ce.text, 16)
         elif ce.tag == "Substitutions":
-            date_utc, date_local, evt_data = parse_substitutions(ce, log_tz)
+            date_utc, date_local, evt_data, username, computer, channel, pid, tid, erid = parse_substitutions(ce, log_tz)
             #print(evt_data)
         elif ce.tag == "ProcessingErrorData":
             pass
@@ -273,8 +322,8 @@ def parse_childelem(elem, nsmap, attrib_conf, log_tz, source, all_flag=False, ad
         #    out_dir = r"\\?\UNC" + out_dir[1:]
         fn = os.path.join(out_dir, os.path.basename(fn))
     attr_key_file = fn + "." + attr_key.replace(",", "_").replace("/", "_") + ".csv"
-    if record_flag:
-        system_data = [date_utc, date_local, eid]
+    #if record_flag:
+    #    system_data = [date_utc, date_local, eid]
     if attr_key in attrib_conf:
         if attr_key_file not in ofiles:
             ofiles[attr_key_file] = io.open(attr_key_file, 'w', encoding='utf-8')
@@ -309,7 +358,8 @@ def parse_childelem(elem, nsmap, attrib_conf, log_tz, source, all_flag=False, ad
     elif record_flag:
         if fn + ".records.csv" not in ofiles:
             ofiles[fn + ".records.csv"] = io.open(fn + ".records.csv", 'w', encoding='utf-8')
-            header = ["UTC", "local_time", "EID"]
+            #header = ["UTC", "local_time", "EID"]
+            header = sys_header.copy()
             if len(evt_data) > 0:
                 for k, v in evt_data.items():
                     header.append(get_tag_name(k))

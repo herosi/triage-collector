@@ -27,7 +27,8 @@ cd triage-collector_x64\artifact_parser_helper
 [Zircolite](https://github.com/wagga40/Zircolite)  
 [evtxexport](https://github.com/libyal/libevtx)  
 [evtx_dump](https://github.com/omerbenamram/evtx) by omerbenamram  
-xml_evtx_parse.py for evtx_dump to convert xml into csv (attached)  
+[EVTXtract](https://github.com/williballenthin/EVTXtract)  
+xml_evtx_parse.py for evtx_dump and EVTXtract to convert xml into csv (attached)  
   
 [MFTECmd](https://ericzimmerman.github.io/)  
 [NTFS_Log_Tracker_CMD](https://sites.google.com/site/forensicnote/ntfs-log-tracker)  

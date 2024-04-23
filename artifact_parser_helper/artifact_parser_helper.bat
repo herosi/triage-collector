@@ -61,6 +61,7 @@ call :GET_INI_VALUE "!inifile!" Parser YarpPrint
 call :GET_INI_VALUE "!inifile!" Parser evtxexport_txt
 call :GET_INI_VALUE "!inifile!" Parser evtxexport_xml
 call :GET_INI_VALUE "!inifile!" Parser evtx_dump
+call :GET_INI_VALUE "!inifile!" Parser evtxtract
 call :GET_INI_VALUE "!inifile!" Parser SIDR
 call :GET_INI_VALUE "!inifile!" Parser BitsParser
 
@@ -78,6 +79,7 @@ echo                              Event log with takajo  : %TAKAJO%
 echo                              Event log with chainsaw: %CHAINSAW%
 echo                             Event log with zircolite: %ZIRCOLITE%
 echo             Event log with evtx_dump by omerbenamram: %evtx_dump%
+echo                             Event log with EVTXtract: %evtxtract%
 echo                    Event log with evtxexport as text: %evtxexport_txt%
 echo                     Event log with evtxexport as XML: %evtxexport_xml%
 echo                                  Registry with RECmd: %RECmd%
@@ -385,6 +387,34 @@ if exist "%indir%\Evtx" (
         )
         echo.
     )
+    
+    :: EVTXtract
+    set exoutdir=%outdir%\Evtx\evtxtract
+    if /I x"%evtxtract%" == x"true" (
+        mkdir "!exoutdir!\im_out" 2> nul
+        echo [+] Parse event logs with EVTXtract
+        for /R "%indir%\Evtx" %%f in (*) do (
+            if not exist "!exoutdir!\im_out\%%~nxf.xml" (
+                echo %%~nxf >> "!exoutdir!\im_out\evtxtract.log"
+                echo ^<?xml version="1.0" encoding="utf-8"?^>  > "!exoutdir!\im_out\%%~nxf.xml"
+                echo ^<evtxtract^> >> "!exoutdir!\im_out\%%~nxf.xml"
+                EVTXtract "%%f" 2>> "!exoutdir!\im_out\evtxtract.log" | findstr /I /V "<?xml version=\"1.0\" encoding=\"utf-8\"?>" >> "!exoutdir!\im_out\%%~nxf.xml"
+                echo ^</evtxtract^>  >> "!exoutdir!\im_out\%%~nxf.xml"
+            )
+            if not exist "!exoutdir!\%%~nxf.xml.csv" (
+                xml_evtx_parse.py -a -o "!exoutdir!\im_out" "!exoutdir!\im_out\%%~nxf.xml" > "!exoutdir!\%%~nxf.xml.csv"
+            )
+            if exist "!exoutdir!\im_out\%%~nxf.xml.records.csv" (
+                if not exist "!exoutdir!\%%~nxf.xml.records.csv" (
+                    copy "!exoutdir!\im_out\%%~nxf.xml.records.csv" "!exoutdir!" >nul
+                )
+            )
+            if not exist "!exoutdir!\%%~nxf.xml_wattr.csv" (
+                xml_evtx_parse.py -a -r -o "!exoutdir!\im_out" "!exoutdir!\im_out\%%~nxf.xml" > "!exoutdir!\%%~nxf.xml_wattr.csv"
+            )
+        )
+        echo.
+    )
 )
 
 if exist "%indir%\Prefetch" (
@@ -497,10 +527,10 @@ if exist "%indir%\BITS" (
             )
             if not exist "%outdir%\BITS\bits_jobs.csv" (
                 echo [+] Convert JSON into csv
-                echo echo CreationTime,ModifiedTime,Carved,JobType,JobState,JobName,OwnerSID,CommandExecuted,CommandArguments,DestFile,SourceURL,TmpFile,DownloadByteSize ^> "%outdir%\BITS\bits_jobs.csv"
-                echo CreationTime,ModifiedTime,Carved,JobType,JobState,JobName,OwnerSID,CommandExecuted,CommandArguments,DestFile,SourceURL,TmpFile,DownloadByteSize > "%outdir%\BITS\bits_jobs.csv"
-                echo jq -r ". | [.CreationTime, .ModifiedTime, .Carved, .JobType, .JobState, .JobName, .OwnerSID, .CommandExecuted, .CommandArguments, (.Files[]? | if length == 0 then null,null,null,null  else .DestFile,.SourceURL,.TmpFile,.DownloadByteSize end)] | @csv" "%outdir%\BITS\bits_jobs.json" ^>^> "%outdir%\BITS\bits_jobs.csv"
-                jq -r ". | [.CreationTime, .ModifiedTime, .Carved, .JobType, .JobState, .JobName, .OwnerSID, .CommandExecuted, .CommandArguments, (.Files[]? | if length == 0 then null,null,null,null  else .DestFile,.SourceURL,.TmpFile,.DownloadByteSize end)] | @csv" "%outdir%\BITS\bits_jobs.json" >> "%outdir%\BITS\bits_jobs.csv"
+                echo echo CreationTime,ModifiedTime,Carved,JobType,JobState,JobName,JobId,OwnerSID,CommandExecuted,CommandArguments,DestFile,SourceURL,TmpFile,DownloadByteSize ^> "%outdir%\BITS\bits_jobs.csv"
+                echo CreationTime,ModifiedTime,Carved,JobType,JobState,JobName,JobId,OwnerSID,CommandExecuted,CommandArguments,DestFile,SourceURL,TmpFile,DownloadByteSize > "%outdir%\BITS\bits_jobs.csv"
+                echo jq -r ". | [.CreationTime, .ModifiedTime, .Carved, .JobType, .JobState, .JobName, .JobId, .OwnerSID, .CommandExecuted, .CommandArguments, (.Files[]? | if length == 0 then null,null,null,null  else .DestFile,.SourceURL,.TmpFile,.DownloadByteSize end)] | @csv" "%outdir%\BITS\bits_jobs.json" ^>^> "%outdir%\BITS\bits_jobs.csv"
+                jq -r ". | [.CreationTime, .ModifiedTime, .Carved, .JobType, .JobState, .JobName, .JobId, .OwnerSID, .CommandExecuted, .CommandArguments, (.Files[]? | if length == 0 then null,null,null,null  else .DestFile,.SourceURL,.TmpFile,.DownloadByteSize end)] | @csv" "%outdir%\BITS\bits_jobs.json" >> "%outdir%\BITS\bits_jobs.csv"
             ) else (
                 echo [-] Skipped converting JSON into csv
             )
