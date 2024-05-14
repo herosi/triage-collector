@@ -125,9 +125,9 @@ call :GET_INI_VALUE "!inifile!" yarp YARPPath
 echo YARP folder: %YARPPath%
 echo.
 
-echo [*] BitsParser settings
-call :GET_INI_VALUE "!inifile!" BitsParser BPPath
-echo BitsParser folder: %BPPath%
+echo [*] registryFlush.py settings
+call :GET_INI_VALUE "!inifile!" RegFlush RFPath
+echo RFPath folder: %RFPath%
 echo.
 
 echo [*] chainsaw settings
@@ -658,26 +658,26 @@ if exist "%indir%\iconcache" if /I x"%THUMBCACHE%" == x"true" (
 if exist "%indir%\WMI" if /I x"%WMI%" == x"true" (
     echo [+] Parse WMI Event Subscription with flare-wmi
     if not exist "%outdir%\WMI_Binding.txt" (
-        echo python dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "__FilterToConsumerBinding" ^> "%outdir%\WMI_Binding.txt"
-        python dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "__FilterToConsumerBinding" > "%outdir%\WMI_Binding.txt"
+        echo dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "__FilterToConsumerBinding" ^> "%outdir%\WMI_Binding.txt"
+        dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "__FilterToConsumerBinding" > "%outdir%\WMI_Binding.txt"
     ) else (
         echo [-] Skipped parsing WMI Event Subscription for __FilterToConsumerBinding
     )
     if not exist "%outdir%\WMI_EventFilter.txt" (
-        echo python dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "__EventFilter" ^> "%outdir%\WMI_EventFilter.txt"
-        python dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "__EventFilter" > "%outdir%\WMI_EventFilter.txt"
+        echo dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "__EventFilter" ^> "%outdir%\WMI_EventFilter.txt"
+        dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "__EventFilter" > "%outdir%\WMI_EventFilter.txt"
     ) else (
         echo [-] Skipped parsing WMI Event Subscription for __EventFilter
     )
     if not exist "%outdir%\WMI_CmdLineEventConsumer.txt" (
-        echo python dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "CommandLineEventConsumer" ^> "%outdir%\WMI_CmdLineEventConsumer.txt"
-        python dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "CommandLineEventConsumer" > "%outdir%\WMI_CmdLineEventConsumer.txt"
+        echo dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "CommandLineEventConsumer" ^> "%outdir%\WMI_CmdLineEventConsumer.txt"
+        dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "CommandLineEventConsumer" > "%outdir%\WMI_CmdLineEventConsumer.txt"
     ) else (
         echo [-] Skipped parsing WMI Event Subscription for CommandLineEventConsumer
     )
     if not exist "%outdir%\WMI_ActScriptEventConsumer.txt" (
-        echo python dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "ActiveScriptEventConsumer" ^> "%outdir%\WMI_ActScriptEventConsumer.txt"
-        python dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "ActiveScriptEventConsumer" > "%outdir%\WMI_ActScriptEventConsumer.txt"
+        echo dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "ActiveScriptEventConsumer" ^> "%outdir%\WMI_ActScriptEventConsumer.txt"
+        dump_class_instance.py win7 "%indir%\WMI" "root\subscription" "ActiveScriptEventConsumer" > "%outdir%\WMI_ActScriptEventConsumer.txt"
     ) else (
         echo [-] Skipped parsing WMI Event Subscription for ActiveScriptEventConsumer
     )
@@ -774,7 +774,7 @@ if exist "%indir%\Registry" (
                 dir /b "%regfixeddir%" | findstr /I /R "%%~nxf_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]@[0-9][0-9][0-9]">nul
                 if !errorlevel! neq 0 (
                     echo [+] Check if %%~nxf is dirty or not
-                    python registryFlush.py -f "%%f" -o "%regfixeddir%"
+                    python %RFPath%\registryFlush.py -f "%%f" -o "%regfixeddir%"
                     echo.
                 )
                 set fixed_infile=%%f
