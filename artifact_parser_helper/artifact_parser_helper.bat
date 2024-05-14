@@ -125,6 +125,10 @@ call :GET_INI_VALUE "!inifile!" yarp YARPPath
 echo YARP folder: %YARPPath%
 echo.
 
+echo [*] BitsParser settings
+call :GET_INI_VALUE "!inifile!" BitsParser BPPath
+echo BitsParser folder: %BPPath%
+
 echo [*] registryFlush.py settings
 call :GET_INI_VALUE "!inifile!" RegFlush RFPath
 echo RFPath folder: %RFPath%
