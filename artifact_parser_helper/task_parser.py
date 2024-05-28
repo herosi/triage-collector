@@ -45,14 +45,14 @@ def parse_task(dom):
          if len(ecmd) > 0:
              cmd = ecmd[0].firstChild.data
          eargs = exec.getElementsByTagName("Arguments")
-         if len(eargs) > 0:
+         if len(eargs) > 0 and eargs[0] and eargs[0].firstChild:
              args = eargs[0].firstChild.data
 
     clsid = ""
     ecom = actions[0].getElementsByTagName("ComHandler")
     if len(ecom) > 0:
         eclsid = ecom[0].getElementsByTagName("ClassId")
-        if len(eclsid) > 0:
+        if len(eclsid) > 0 and eclsid[0] and eclsid[0].firstChild:
              clsid = eclsid[0].firstChild.data
 
     return dt, uri, author, cmd, args, clsid
