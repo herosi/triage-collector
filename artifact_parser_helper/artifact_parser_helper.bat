@@ -167,10 +167,6 @@ for /F "tokens=* USEBACKQ" %%l in (`hayabusa csv-timeline --help`) do (
     if !errorlevel! equ 0 (
         set HRC_OPT=!HRC_OPT! -x
     )
-    echo "%%l"|findstr /i /C:"-R, --remove-duplicate-data">nul
-    if !errorlevel! equ 0 (
-        set HRC_OPT=!HRC_OPT! -R
-    )
     echo "%%l"|findstr /i /C:"-w, --no-wizard">nul
     if !errorlevel! equ 0 (
         set HRC_OPT=!HRC_OPT! -w
