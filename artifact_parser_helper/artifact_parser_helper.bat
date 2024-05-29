@@ -905,8 +905,8 @@ if exist "%indir%\Registry" (
                         dir /b "%recmdoutdir%" | findstr /i /r "_Amcache_.*\.csv">nul
                         if !errorlevel! neq 0 (
                             echo [+] Parse %%~nxf with AmcacheParser
-                            echo AmcacheParser -f "%%f" --csv "%recmdoutdir%"
-                            AmcacheParser -f "%%f" --csv "%recmdoutdir%" > nul
+                            echo AmcacheParser -f "%%f" -i --csv "%recmdoutdir%"
+                            AmcacheParser -f "%%f" -i --csv "%recmdoutdir%" > nul
                         ) else (
                             echo [-] Skipped parsing %%~nxf with AmcacheParser
                         )
