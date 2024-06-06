@@ -482,6 +482,7 @@ if exist "%indir%\sum" (
                 attrib -r "%outdir%\sum\fixed\*.*" /s
                 pushd "%outdir%\sum\fixed"
                 esentutl.exe /r svc /i > nul
+                esentutl.exe /r Api /i > nul
                 for /R "%outdir%\sum" %%f in (*) do (
                     echo %%f|findstr /i /l ".mdb">nul
                     if !errorlevel! equ 0 (
