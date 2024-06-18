@@ -167,6 +167,10 @@ for /F "tokens=* USEBACKQ" %%l in (`hayabusa csv-timeline --help`) do (
     if !errorlevel! equ 0 (
         set HRC_OPT=!HRC_OPT! -x
     )
+    echo "%%l"|findstr /i /C:"-R, --remove-duplicate-data">nul
+    if !errorlevel! equ 0 (
+        set HRC_OPT=!HRC_OPT! -R
+    )
     echo "%%l"|findstr /i /C:"-w, --no-wizard">nul
     if !errorlevel! equ 0 (
         set HRC_OPT=!HRC_OPT! -w
@@ -482,7 +486,6 @@ if exist "%indir%\sum" (
                 attrib -r "%outdir%\sum\fixed\*.*" /s
                 pushd "%outdir%\sum\fixed"
                 esentutl.exe /r svc /i > nul
-                esentutl.exe /r Api /i > nul
                 for /R "%outdir%\sum" %%f in (*) do (
                     echo %%f|findstr /i /l ".mdb">nul
                     if !errorlevel! equ 0 (
@@ -709,7 +712,7 @@ if exist "%indir%\Registry" (
     mkdir "%yarpoutdir%" 2> nul
     mkdir "%recmdoutdir%" 2> nul
 
-    rem rla -d "%regindir%" --out "%rlaoutdir%" --ca true --cn false
+    rem rla -d "%regindir%" --out "%rlaoutdir%" --ca --cn false
     rem set regindir=%rlaoutdir%
 
     if /I x"%RECmd%" == x"true" (
@@ -718,8 +721,8 @@ if exist "%indir%\Registry" (
             dir /b "%recmdoutdir%" | findstr /i /l "_RECmd_Batch_%%b_Output.csv">nul
             if !errorlevel! neq 0 (
                 echo [+] Parse all registry hives with %%b.reb with RECmd
-                echo recmd --recover true --bn "%REBatchFolder%\%%b.reb" -d "%regindir%" --csv "%recmdoutdir%"
-                recmd --recover true --bn "%REBatchFolder%\%%b.reb" -d "%regindir%" --csv "%recmdoutdir%" > nul
+                echo recmd --recover --bn "%REBatchFolder%\%%b.reb" -d "%regindir%" --csv "%recmdoutdir%"
+                recmd --recover --bn "%REBatchFolder%\%%b.reb" -d "%regindir%" --csv "%recmdoutdir%" > nul
             ) else (
                 echo [-] Skipped parsing all registry hives with %%b.reb with RECmd
             )
@@ -733,8 +736,8 @@ if exist "%indir%\Registry" (
             dir /b "%recmdoutdir%" | findstr /i /l "_RECmd_Batch_%%b_Output.csv">nul
             if !errorlevel! neq 0 (
                 echo [+] Parse all registry hives with %%b.reb with RECmd
-                echo recmd --recover true --bn "%IIJ_REBatchFolder%\%%b.reb" -d "%regindir%" --csv "%recmdoutdir%"
-                recmd --recover true --bn "%IIJ_REBatchFolder%\%%b.reb" -d "%regindir%" --csv "%recmdoutdir%" > nul
+                echo recmd --recover --bn "%IIJ_REBatchFolder%\%%b.reb" -d "%regindir%" --csv "%recmdoutdir%"
+                recmd --recover --bn "%IIJ_REBatchFolder%\%%b.reb" -d "%regindir%" --csv "%recmdoutdir%" > nul
             ) else (
                 echo [-] Skipped parsing all registry hives with %%b.reb with RECmd with IIJ check list
             )
@@ -846,8 +849,8 @@ if exist "%indir%\Registry" (
                         dir /b "!useroutdir!" | findstr /i /l "%%~nxf_%%b.finished">nul
                         if !errorlevel! neq 0 (
                             echo [+] Parse %%~nxf with %%b.reb with RECmd
-                            echo recmd --recover true --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "!useroutdir!"
-                            recmd --recover true --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "!useroutdir!" > nul
+                            echo recmd --recover --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "!useroutdir!"
+                            recmd --recover --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "!useroutdir!" > nul
                             type nul > "!useroutdir!\%%~nxf_%%b.finished"
                         ) else (
                             echo [-] Skipped parsing %%~nxf with %%b.reb with RECmd
@@ -863,8 +866,8 @@ if exist "%indir%\Registry" (
                         dir /b "%recmdoutdir%\software" | findstr /i /l "_RECmd_Batch_%%b_Output.csv">nul
                         if !errorlevel! neq 0 (
                             echo [+] Parse %%~nxf with %%b.reb with RECmd
-                            echo recmd --recover true --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "%recmdoutdir%\software"
-                            recmd --recover true --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "%recmdoutdir%\software" > nul
+                            echo recmd --recover --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "%recmdoutdir%\software"
+                            recmd --recover --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "%recmdoutdir%\software" > nul
                         ) else (
                             echo [-] Skipped parsing %%~nxf with %%b.reb with RECmd
                         )
@@ -879,8 +882,8 @@ if exist "%indir%\Registry" (
                         dir /b "%recmdoutdir%\system" | findstr /i /l "_RECmd_Batch_%%b_Output.csv">nul
                         if !errorlevel! neq 0 (
                             echo [+] Parse %%~nxf with %%b.reb with RECmd
-                            echo recmd --recover true --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "%recmdoutdir%\system"
-                            recmd --recover true --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "%recmdoutdir%\system" > nul
+                            echo recmd --recover --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "%recmdoutdir%\system"
+                            recmd --recover --bn "%REBatchFolder%\%%b.reb" -f "%%f" --csv "%recmdoutdir%\system" > nul
                         ) else (
                             echo [-] Skipped parsing %%~nxf with %%b.reb with RECmd
                         )
@@ -906,8 +909,8 @@ if exist "%indir%\Registry" (
                         dir /b "%recmdoutdir%" | findstr /i /r "_Amcache_.*\.csv">nul
                         if !errorlevel! neq 0 (
                             echo [+] Parse %%~nxf with AmcacheParser
-                            echo AmcacheParser -f "%%f" -i --csv "%recmdoutdir%"
-                            AmcacheParser -f "%%f" -i --csv "%recmdoutdir%" > nul
+                            echo AmcacheParser -f "%%f" --csv "%recmdoutdir%"
+                            AmcacheParser -f "%%f" --csv "%recmdoutdir%" > nul
                         ) else (
                             echo [-] Skipped parsing %%~nxf with AmcacheParser
                         )
@@ -991,8 +994,8 @@ if exist "%indir%\NTFS" (
                 echo [+] Parse %%~nxf with MFTECmd
                 dir /b "%outdir%\NTFS" | findstr /i /l "_MFTECmd_$MFT_Output.csv">nul
                 if !errorlevel! neq 0 (
-                    echo MFTECmd -f "%%f" --at true --rs true --csv "%outdir%\NTFS"
-                    MFTECmd -f "%%f" --at true --rs true --csv "%outdir%\NTFS" > nul
+                    echo MFTECmd -f "%%f" --at --rs --csv "%outdir%\NTFS"
+                    MFTECmd -f "%%f" --at --rs --csv "%outdir%\NTFS" > nul
                     echo.
                 ) else (
                     echo [-] Skipped parsing %%~nxf with MFTECmd
@@ -1002,8 +1005,8 @@ if exist "%indir%\NTFS" (
             if /I x"%MFTECmd_MFT_TL%" == x"true" (
                 dir /b "%outdir%\NTFS" | findstr /i /l "_MFTECmd_$MFT_Output.body">nul
                 if !errorlevel! neq 0 (
-                    echo MFTECmd -f "%%f" --bdl %driveletter% --rs true --body "%outdir%\NTFS"
-                    MFTECmd -f "%%f" --bdl %driveletter% --rs true --body "%outdir%\NTFS" > nul
+                    echo MFTECmd -f "%%f" --bdl %driveletter% --rs --body "%outdir%\NTFS"
+                    MFTECmd -f "%%f" --bdl %driveletter% --rs --body "%outdir%\NTFS" > nul
                     echo.
                 ) else (
                     echo [-] Skipped parsing %%~nxf as a body format with MFTECmd
@@ -1037,8 +1040,8 @@ if exist "%indir%\NTFS" (
                 dir /b "%outdir%\NTFS" | findstr /i /l "_MFTECmd_$SDS_Output.csv">nul
                 if !errorlevel! neq 0 (
                     if /I x"%MFTECmd_SDS%" == x"true" (
-                        echo MFTECmd -f "%%f" --rs true --csv "%outdir%\NTFS"
-                        MFTECmd -f "%%f" --rs true --csv "%outdir%\NTFS" > nul
+                        echo MFTECmd -f "%%f" --rs --csv "%outdir%\NTFS"
+                        MFTECmd -f "%%f" --rs --csv "%outdir%\NTFS" > nul
                         echo.
                     ) else (
                         echo [-] Skipped parsing %%~nxf with MFTECmd
@@ -1050,8 +1053,8 @@ if exist "%indir%\NTFS" (
                 dir /b "%outdir%\NTFS" | findstr /i /l "_MFTECmd_$J_Output.csv">nul
                 if !errorlevel! neq 0 (
                     if /I x"%MFTECmd_J%" == x"true" (
-                        echo MFTECmd -f "%%f" !MFT_OPT! --rs true --csv "%outdir%\NTFS"
-                        MFTECmd -f "%%f" !MFT_OPT! --rs true --csv "%outdir%\NTFS" > nul
+                        echo MFTECmd -f "%%f" !MFT_OPT! --rs --csv "%outdir%\NTFS"
+                        MFTECmd -f "%%f" !MFT_OPT! --rs --csv "%outdir%\NTFS" > nul
                        echo.
                     ) else (
                         echo [-] Skipped parsing %%~nxf with MFTECmd
