@@ -167,10 +167,6 @@ for /F "tokens=* USEBACKQ" %%l in (`hayabusa csv-timeline --help`) do (
     if !errorlevel! equ 0 (
         set HRC_OPT=!HRC_OPT! -x
     )
-    echo "%%l"|findstr /i /C:"-R, --remove-duplicate-data">nul
-    if !errorlevel! equ 0 (
-        set HRC_OPT=!HRC_OPT! -R
-    )
     echo "%%l"|findstr /i /C:"-w, --no-wizard">nul
     if !errorlevel! equ 0 (
         set HRC_OPT=!HRC_OPT! -w
@@ -486,6 +482,7 @@ if exist "%indir%\sum" (
                 attrib -r "%outdir%\sum\fixed\*.*" /s
                 pushd "%outdir%\sum\fixed"
                 esentutl.exe /r svc /i > nul
+                esentutl.exe /r Api /i > nul
                 for /R "%outdir%\sum" %%f in (*) do (
                     echo %%f|findstr /i /l ".mdb">nul
                     if !errorlevel! equ 0 (
@@ -909,8 +906,8 @@ if exist "%indir%\Registry" (
                         dir /b "%recmdoutdir%" | findstr /i /r "_Amcache_.*\.csv">nul
                         if !errorlevel! neq 0 (
                             echo [+] Parse %%~nxf with AmcacheParser
-                            echo AmcacheParser -f "%%f" --csv "%recmdoutdir%"
-                            AmcacheParser -f "%%f" --csv "%recmdoutdir%" > nul
+                            echo AmcacheParser -i -f "%%f" --csv "%recmdoutdir%"
+                            AmcacheParser -i -f "%%f" --csv "%recmdoutdir%" > nul
                         ) else (
                             echo [-] Skipped parsing %%~nxf with AmcacheParser
                         )
