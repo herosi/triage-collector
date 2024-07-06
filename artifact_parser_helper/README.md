@@ -29,6 +29,7 @@ cd triage-collector_x64\artifact_parser_helper
 [evtx_dump](https://github.com/omerbenamram/evtx) by omerbenamram  
 [EVTXtract](https://github.com/williballenthin/EVTXtract)  
 xml_evtx_parse.py for evtx_dump and EVTXtract to convert xml into csv (attached)  
+Get-WinEvent from PowerShell  
   
 [MFTECmd](https://ericzimmerman.github.io/)  
 [NTFS_Log_Tracker_CMD](https://sites.google.com/site/forensicnote/ntfs-log-tracker)  
