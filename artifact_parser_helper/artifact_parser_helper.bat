@@ -31,6 +31,7 @@ call :GET_INI_VALUE "!inifile!" Parser MFTECmd_J
 call :GET_INI_VALUE "!inifile!" Parser MFTECmd_SDS
 call :GET_INI_VALUE "!inifile!" Parser NLT_Log
 call :GET_INI_VALUE "!inifile!" Parser NLT_J
+call :GET_INI_VALUE "!inifile!" Parser PSGetWinEvent
 call :GET_INI_VALUE "!inifile!" Parser EvtxECmd
 call :GET_INI_VALUE "!inifile!" Parser HAYABUSA
 call :GET_INI_VALUE "!inifile!" Parser TAKAJO
@@ -73,6 +74,7 @@ echo                              UsnJrnl:$J with MFTECmd: %MFTECmd_J%
 echo                            $Secure:$SDS with MFTECmd: %MFTECmd_SDS%
 echo                       $Logfile with NTFS Log Tracker: %NLT_Log%
 echo                     UnsJrnl:$J with NTFS Log Tracker: %NLT_J%
+echo               Event log with PowerShell Get-WinEvent: %PSGetWinEvent%
 echo                              Event log with EvtxECmd: %EvtxECmd%
 echo                              Event log with hayabusa: %HAYABUSA%
 echo                              Event log with takajo  : %TAKAJO%
@@ -175,6 +177,14 @@ for /F "tokens=* USEBACKQ" %%l in (`hayabusa csv-timeline --help`) do (
     if !errorlevel! equ 0 (
         set HRC_OPT=!HRC_OPT! -X
     )
+    echo "%%l"|findstr /i /C:"-A, --enable-all-rules">nul
+    if !errorlevel! equ 0 (
+        set HRC_OPT=!HRC_OPT! -A
+    )
+    echo "%%l"|findstr /i /C:"-a, --scan-all-evtx-files">nul
+    if !errorlevel! equ 0 (
+        set HRC_OPT=!HRC_OPT! -a
+    )
 )
 
 set HJRC_OPT=
@@ -190,6 +200,14 @@ for /F "tokens=* USEBACKQ" %%l in (`hayabusa json-timeline --help`) do (
     echo "%%l"|findstr /i /C:"-X, --remove-duplicate-detections">nul
     if !errorlevel! equ 0 (
         set HJRC_OPT=!HJRC_OPT! -X
+    )
+    echo "%%l"|findstr /i /C:"-A, --enable-all-rules">nul
+    if !errorlevel! equ 0 (
+        set HJRC_OPT=!HJRC_OPT! -A
+    )
+    echo "%%l"|findstr /i /C:"-a, --scan-all-evtx-files">nul
+    if !errorlevel! equ 0 (
+        set HJRC_OPT=!HJRC_OPT! -a
     )
 )
 
@@ -234,15 +252,15 @@ if exist "%indir%\Evtx" (
     if /I x"%HAYABUSA%" == x"true" (
         echo [+] Parse event logs with hayabusa
         if not exist "%outdir%\Evtx\hayabusa_default.csv" (
-            echo hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -o "%outdir%\Evtx\hayabusa_default.csv"
-            hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -o "%outdir%\Evtx\hayabusa_default.csv"
+            echo hayabusa.exe csv-timeline !HRC_OPT! -d "%indir%\Evtx" -o "%outdir%\Evtx\hayabusa_default.csv"
+            hayabusa.exe csv-timeline !HRC_OPT! -d "%indir%\Evtx" -o "%outdir%\Evtx\hayabusa_default.csv"
         ) else (
             echo [-] Skipped parsing event logs with hayabusa
         )
         if not exist "%outdir%\Evtx\hayabusa_IIJ.csv" (
             if exist "C:\tools\hayabusa_rules_by_IIJ" (
-                echo hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
-                hayabusa.exe csv-timeline %HRC_OPT% -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
+                echo hayabusa.exe csv-timeline !HRC_OPT! -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
+                hayabusa.exe csv-timeline !HRC_OPT! -d "%indir%\Evtx" -r C:\tools\hayabusa_rules_by_IIJ -o "%outdir%\Evtx\hayabusa_IIJ.csv"
             )
         )
         echo.
@@ -251,8 +269,8 @@ if exist "%indir%\Evtx" (
     if /I x"%TAKAJO%" == x"true" (
         echo [+] Parse event logs with takajo
         if not exist "%outdir%\Evtx\hayabusa_default.jsonl" (
-            echo hayabusa.exe json-timeline %HJRC_OPT% -d "%indir%\Evtx" -L -p verbose -o "%outdir%\Evtx\hayabusa_default.jsonl"
-            hayabusa.exe json-timeline %HJRC_OPT% -d "%indir%\Evtx" -L -p verbose -o "%outdir%\Evtx\hayabusa_default.jsonl"
+            echo hayabusa.exe json-timeline !HJRC_OPT! -d "%indir%\Evtx" -L -p verbose -o "%outdir%\Evtx\hayabusa_default.jsonl"
+            hayabusa.exe json-timeline !HJRC_OPT! -d "%indir%\Evtx" -L -p verbose -o "%outdir%\Evtx\hayabusa_default.jsonl"
         ) else (
             echo [-] Skipped parsing event logs with hayabusa ^(JSON^)
         )
@@ -387,7 +405,26 @@ if exist "%indir%\Evtx" (
         )
         echo.
     )
-    
+
+    :: PSGetWinEvent
+    set psweoutdir=%outdir%\Evtx\PSGetWinEvent
+    if /I x"%PSGetWinEvent%" == x"true" (
+        mkdir "!psweoutdir!\im_out" 2> nul
+        echo [+] Parse event logs with PowerShell Get-WinEvent
+        for /R "%indir%\Evtx" %%f in (*) do (
+            if not exist "!psweoutdir!\im_out\%%~nxf.xml" (
+                echo ^<?xml version=^"1.0^" encoding=^"utf-8^" standalone=^"yes^" ?^>^<Events^> > "!psweoutdir!\im_out\%%~nxf.xml"
+                PowerShell -exec bypass -Command "try { Get-WinEvent -Path '%%f' -ErrorAction Stop| foreach-object { $_.ToXml() | Out-File '!psweoutdir!\im_out\%%~nxf.xml' -Encoding utf8 -Append }; echo '</Events>' | Out-File '!psweoutdir!\im_out\%%~nxf.xml' -Encoding utf8 -Append } catch [Exception] { if ($_.Exception -match 'No events were found that match the specified selection criteria') { Remove-Item '!psweoutdir!\im_out\%%~nxf.xml' } else {throw $_}}"
+            )
+            if exist "!psweoutdir!\im_out\%%~nxf.xml" (
+                if not exist "!psweoutdir!\%%~nxf.xml_wattr.csv" (
+                    xml_evtx_parse.py -a -r -o "!psweoutdir!\im_out" "!psweoutdir!\im_out\%%~nxf.xml" > "!psweoutdir!\%%~nxf.xml_wattr.csv"
+                )
+            )
+        )
+        echo.
+    )
+
     :: EVTXtract
     set exoutdir=%outdir%\Evtx\evtxtract
     if /I x"%evtxtract%" == x"true" (
