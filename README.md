@@ -6,6 +6,7 @@ without compilation as well as pre-defined artifacts.
 
 * RAM
   * with WinPmem
+  * with DumpIt for Windows (needed to uncomment the line and comment out the WinPmem lines triage-collector.ini)
 * NTFS
   * $MFT
   * $Logfile
