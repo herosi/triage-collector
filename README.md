@@ -103,12 +103,12 @@ triage-collector depends on the following library/tools.
 
 * Library: NTFSParserDLL, LibreSSL and inipp,
 * Tool: winpmem
+  - winpmem.exe is a part of c-aff4 project (https://github.com/Velocidex/c-aff4).  
+  - winpmem_mini_x64_rc2.exe and winpmem_mini_x86.exe are from https://github.com/Velocidex/WinPmem  
+  - winpmem-2.1.post4.exe is a part of rekall project (https://github.com/google/rekall).  
 
-winpmem.exe is a part of c-aff4 project (https://github.com/Velocidex/c-aff4).  
-winpmem_mini_x64_rc2.exe and winpmem_mini_x86.exe are from https://github.com/Velocidex/WinPmem  
-winpmem-2.1.post4.exe is a part of rekall project (https://github.com/google/rekall).  
+* Tool: Magnet DumpIt for Windows (optional)
 You can download Magnet DumpIt for Windows from https://www.magnetforensics.com/resources/magnet-dumpit-for-windows/  
 
 * Icon logo
-
 Created my logo at LogoMakr.com/app
