@@ -6,7 +6,7 @@ without compilation as well as pre-defined artifacts.
 
 * RAM
   * with WinPmem
-  * with DumpIt for Windows (needed to uncomment the line and comment out the WinPmem lines triage-collector.ini)
+  * with Magnet DumpIt for Windows (needed to place the binary and uncomment the line and comment out the WinPmem lines in triage-collector.ini)
 * NTFS
   * $MFT
   * $Logfile
@@ -104,9 +104,10 @@ triage-collector depends on the following library/tools.
 * Library: NTFSParserDLL, LibreSSL and inipp,
 * Tool: winpmem
 
-winpmem.exe is a part of c-aff4 project (https://github.com/Velocidex/c-aff4). 
-winpmem_mini_x64_rc2.exe and winpmem_mini_x86.exe are from https://github.com/Velocidex/WinPmem
-winpmem-2.1.post4.exe is a part of rekall project (https://github.com/google/rekall).
+winpmem.exe is a part of c-aff4 project (https://github.com/Velocidex/c-aff4).  
+winpmem_mini_x64_rc2.exe and winpmem_mini_x86.exe are from https://github.com/Velocidex/WinPmem  
+winpmem-2.1.post4.exe is a part of rekall project (https://github.com/google/rekall).  
+You can download Magnet DumpIt for Windows from https://www.magnetforensics.com/resources/magnet-dumpit-for-windows/  
 
 * Icon logo
 
